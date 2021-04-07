@@ -2,7 +2,7 @@
 
 Repo consists of a base controller and advanced controllers for PX4-based drones. The advanced controllers extend the base controller. To implement an advanced controller, use `advanced_controller` and `advanced_cmd_line`. 
 
-The code is set up to switch between base controller and advanced controller during flight. Switching happens either manually or automatically. To manually switch, the user can use pre-defined commands in `base_cmd_line` and `advanced_cmd_line`. The code automatically switches out of the advanced controller if the drone becomes unstable (see 'check_security' method).
+The code is set up to switch between base controller and advanced controller during flight. Switching happens either manually or automatically. To manually switch, the user can use pre-defined commands in `base_cmd_line` and `advanced_cmd_line`. The code automatically switches out of the advanced controller if the drone becomes unstable (see `check_security` method).
 
 ## Setup
 
