@@ -11,3 +11,5 @@ To install the required packages, follow the ROS_Gazebo_PX4_Setup guide. Some in
 * PX4 - v1.9.2
 * Mavros - v0.33.4
 * Mavlink - origin/debian/kinetic/mavlink (we are running ROS melodic, but the kinetic branch is the right version for Mavlink)
+
+To see which versions you are running, `roscd <pkg>` and run `git branch -a`. If the git head is not pointing to the same version as the one above, use `git checkout tags/v<x.xx.x>` to checkout the right version.
