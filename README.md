@@ -13,3 +13,10 @@ To install the required packages, follow the ROS_Gazebo_PX4_Setup guide. Some in
 * Mavlink - origin/debian/kinetic/mavlink (we are running ROS melodic, but the kinetic branch is the right version for Mavlink)
 
 To see which versions you are running, `roscd <pkg>` and run `git branch -a`. If the git head is not pointing to the same version as the one above, use `git checkout tags/v<x.xx.x>` to checkout the right version.
+
+
+## Run
+
+Use `sitl_gazebo.launch` to  test the controller in Gazebo. A seperate terminal will launch, which we use to command the drone. The specified commands are found in the `base_cmd_line` and `advanced_cmd_line` files. 
+
+To test the drone in experiments, we first launch `offboard.launch` to initialize the communication with the vehicle and then launch `cmd_line.launch` in a seperate window. The launch files are seperated, so we can use two different terminals when ssh'ing to the drone's onboard computer.
