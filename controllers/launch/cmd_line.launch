@@ -1,0 +1,10 @@
+<launch>
+	<!-- launch command line control for drone -->
+	<node name="main_control" pkg="controllers" type="main_control.py" output="screen">
+		<rosparam param="safe_point">[0, 0, 1.5] </rosparam>
+		<rosparam param="safe_cube_corner_1"> [-2.5, -2.5, -0.5] </rosparam>
+		<rosparam param="safe_cube_corner_2"> [2.5, 2.5, 2.5] </rosparam>
+		<rosparam param="euler_limit"> [8, 8, 15] </rosparam>
+		<param name="bool_sim" value="False" />
+	</node>
+</launch>

@@ -1,0 +1,4 @@
+<launch>
+	<!-- run batch file -->
+  	<node name="offboard_setup" pkg="controllers" type="offboard_setup.sh" output="screen"/>
+</launch>
