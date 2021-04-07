@@ -19,4 +19,4 @@ To see which versions you are running, `roscd <pkg>` and run `git branch -a`. If
 
 Use `sitl_gazebo.launch` to  test the controller in Gazebo. A seperate terminal will launch, which we use to command the drone. The specified commands are found in the `base_cmd_line` and `advanced_cmd_line` files. 
 
-To test the drone in experiments, we first launch `offboard.launch` to initialize the communication with the vehicle and then launch `cmd_line.launch` in a seperate window. The launch files are seperated, so we can use two different terminals when ssh'ing to the drone's onboard computer.
+For experiments, we first launch `offboard.launch` to initialize the communication with the vehicle and then launch `cmd_line.launch` in a seperate termianl. The launch files are seperated, because we want to use two different terminals when ssh'ing to the drone's onboard computer.
