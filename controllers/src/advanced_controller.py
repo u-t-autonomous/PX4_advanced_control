@@ -1,5 +1,6 @@
 import rospy
 from base_controller import OffboardControl
+from trajectory_controller import TrajectoryController
 
 class AdvancedController(OffboardControl):
     """ Extends basic drone controller with advanced control methods """
@@ -62,7 +63,7 @@ class AdvancedController(OffboardControl):
         """
         Input code for trajectory controller here
         """
-        pass
+        self.trajectory_controller.trajectory_callback(traj_type="circle")
 
     def start_automatic(self, mode):
         """ Set automatic flags for advanced controllers """
@@ -70,6 +71,7 @@ class AdvancedController(OffboardControl):
         if mode == 0:
             self.reset_automatic()
             self.auto_traj_flag = True
+            self.trajectory_controller = TrajectoryController()
             rospy.loginfo('Starting traj control ...')
 
     def is_point_in_cube(self, coord, corner1, corner2):
