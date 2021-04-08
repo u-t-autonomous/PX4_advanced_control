@@ -31,7 +31,7 @@ class CommandLine(object):
         self.warn_args = False
 
     def check_input_length(self, nmbr_req, nmbr_is):
-        """ Checks if nmbr_req by method equals to nmbr_is """
+        """ Checks if the right number of inputs is given """
         if nmbr_req == nmbr_is:
             return True
         else:
@@ -39,7 +39,7 @@ class CommandLine(object):
             return False
 
     def command(self, val):
-        """ Special requirements for inputs """
+        """ Checks if input requirements are met and calls offboard_controller """
         if val[0] == 'takeoff' and self.check_input_length(2, len(val)):
             self.dict_command[val[0]](float(val[1]))
         elif val[0] == 'yaw' and self.check_input_length(2, len(val)):
@@ -69,7 +69,7 @@ class CommandLine(object):
         return True
 
     def process_command(self, val):
-        """ Processes input from command line """
+        """ Checks if command line input is valid """
         self.warn_args = False
         if val[0] in self.dict_command:
             # see if special condition applies for input

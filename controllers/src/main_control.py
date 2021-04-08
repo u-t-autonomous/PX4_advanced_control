@@ -27,7 +27,7 @@ def main():
     updateFreq = 100
     rate = rospy.Rate(updateFreq)
 
-    # check whether print_control should be started
+    # check whether advanced controller should be started
     bool_adv_ctrl = rospy.get_param('~adv_ctrl', False)
     bool_sim = rospy.get_param('~bool_sim', False)
     if bool_sim:

@@ -2,7 +2,7 @@ import rospy
 from base_controller import OffboardControl
 
 class AdvancedController(OffboardControl):
-    """ Extends basic drone controller with methods for the printing process """
+    """ Extends basic drone controller with advanced control methods """
 
     def __init__(self, hoverVal=0.5, updateTime=0.01, bool_sim=False):
         super(AdvancedController, self).__init__(hoverVal=hoverVal, updateTime=updateTime)
@@ -24,8 +24,9 @@ class AdvancedController(OffboardControl):
         """ Enhance base method with advanced controller """
         self.check_security()
 
-        # automatic modes
+        # automatic modes for advanced controllers
         if self.auto_traj_flag:
+            # input trajectory controller
             self.trajectory_control()
 
         else:
@@ -48,7 +49,7 @@ class AdvancedController(OffboardControl):
             self.angle_pub_counter += 1
 
     def trajectory_control(self):
-        """ Automatic lowering of drone """
+        """ Triggers new trajectory control based on desired frequency """
         # enter automatic mode if counter is high enough
         # breaks automatic when manual input, is_point_in_cube(), or ground contact is triggered
         if self.sleep_checker(self.auto_traj_counter, self.auto_traj_freq):
@@ -64,7 +65,7 @@ class AdvancedController(OffboardControl):
         pass
 
     def start_automatic(self, mode):
-        """ Set flag for corresponding automatic mode """
+        """ Set automatic flags for advanced controllers """
         # descend
         if mode == 0:
             self.reset_automatic()
