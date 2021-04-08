@@ -4,6 +4,7 @@ import numpy as np
 import rospy
 
 from geometry_msgs.msg import Transform, Twist
+from std_msgs.msg import Bool
 from tf.transformations import quaternion_from_euler
 from trajectory_msgs.msg import MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 
@@ -19,8 +20,12 @@ class TrajectoryController(object):
             "/command/trajectory", MultiDOFJointTrajectory, queue_size=1
         )
 
+        self.bool_publisher = rospy.Publisher(
+            "/ext_traj/bool", Bool, queue_size=1
+        )
+
         # start_time stores the t = 0 for each segment of flight
-        self.start_time = rospy.get_time()
+        self.start_time = 0
 
     def trajectory_callback(self, traj_type):
 
@@ -55,12 +60,14 @@ class TrajectoryController(object):
 
     def follow_circle(self):
         current_time = rospy.get_time()
+        if self.start_time == 0:
+            self.start_time = current_time
         time_difference = current_time - self.start_time
 
         # Functions are evaluated at each time step, and published in a message to the
         # controller
         factor = 0.5
-        radius = 1
+        radius = 2.5
         x_des, y_des = self.calculate_position(time_difference, radius, factor)
         vx_des, vy_des = self.calculate_velocity(time_difference, radius, factor)
         ax_des, ay_des = self.calculate_acceleration(time_difference, radius, factor)
@@ -99,3 +106,10 @@ class TrajectoryController(object):
 
     def calculate_yaw(self):
         return np.arctan2(self.desired_vel[1][0], self.desired_vel[0][0])
+
+    def publish_bool(self, value):
+        bool_msg = Bool()
+        bool_msg.data = value
+        if not value:
+            self.start_time = 0
+        self.bool_publisher.publish(bool_msg)

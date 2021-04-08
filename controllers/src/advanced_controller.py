@@ -8,6 +8,7 @@ class AdvancedController(OffboardControl):
     def __init__(self, hoverVal=0.5, updateTime=0.01, bool_sim=False):
         super(AdvancedController, self).__init__(hoverVal=hoverVal, updateTime=updateTime)
         self.bool_sim = bool_sim
+        self.trajectory_controller = TrajectoryController()
         self.reset_automatic()
         self.auto_traj_freq = rospy.get_param('~traj_freq', 50)
 
@@ -20,6 +21,7 @@ class AdvancedController(OffboardControl):
         """ Reset all automatic flags and counters """
         self.auto_traj_flag = False
         self.auto_traj_counter = 0
+        self.trajectory_controller.publish_bool(False)
 
     def update(self):
         """ Enhance base method with advanced controller """
@@ -64,6 +66,7 @@ class AdvancedController(OffboardControl):
         Input code for trajectory controller here
         """
         self.trajectory_controller.trajectory_callback(traj_type="circle")
+        self.trajectory_controller.publish_bool(True)
 
     def start_automatic(self, mode):
         """ Set automatic flags for advanced controllers """
@@ -71,7 +74,6 @@ class AdvancedController(OffboardControl):
         if mode == 0:
             self.reset_automatic()
             self.auto_traj_flag = True
-            self.trajectory_controller = TrajectoryController()
             rospy.loginfo('Starting traj control ...')
 
     def is_point_in_cube(self, coord, corner1, corner2):
