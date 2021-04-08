@@ -8,9 +8,9 @@ The code is set up to switch between base controller and advanced controller dur
 
 To install the required packages, follow the ROS_Gazebo_PX4_Setup guide. Some information may be outdated, so check the PX4 documentation for updates. The following package versions have been successfully tested:
 
-* PX4 - v1.9.2
-* Mavros - v0.33.4
-* Mavlink - origin/debian/kinetic/mavlink (we are running ROS melodic, but the kinetic branch is the right version for Mavlink)
+* PX4 - 1.9.2 on Ubuntu 18.4 / 1.9.0dev on Hexacopter
+* Mavros - 0.32.1 on Ubuntu 18.4 / 1.3.0 on Odroid
+* Mavlink - origin/debian/kinetic/mavlink (we are running ROS melodic, but the kinetic branch is the right version for Mavlink) / 1.0 (!?) on Odroid
 
 To see which versions you are running, `roscd <pkg>` and run `git branch -a`. If the git head is not pointing to the same version as the one above, use `git checkout tags/v<x.xx.x>` to checkout the right version.
 
