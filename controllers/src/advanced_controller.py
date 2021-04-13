@@ -2,20 +2,23 @@ import rospy
 from base_controller import OffboardControl
 from trajectory_controller import TrajectoryController
 
+
 class AdvancedController(OffboardControl):
     """ Extends basic drone controller with advanced control methods """
 
     def __init__(self, hoverVal=0.5, updateTime=0.01, bool_sim=False):
-        super(AdvancedController, self).__init__(hoverVal=hoverVal, updateTime=updateTime)
+        super(AdvancedController, self).__init__(
+            hoverVal=hoverVal, updateTime=updateTime
+        )
         self.bool_sim = bool_sim
         self.trajectory_controller = TrajectoryController()
         self.reset_automatic()
-        self.auto_traj_freq = rospy.get_param('~traj_freq', 50)
+        self.auto_traj_freq = rospy.get_param("~traj_freq", 50)
 
         self.angle_pub_counter = 0
-        self.angle_pub_freq = 5 # Hz
+        self.angle_pub_freq = 5  # Hz
 
-        rospy.loginfo('Advanced controller initalized!')
+        rospy.loginfo("Advanced controller initalized!")
 
     def reset_automatic(self):
         """ Reset all automatic flags and counters """
@@ -65,7 +68,9 @@ class AdvancedController(OffboardControl):
         """
         Input code for trajectory controller here
         """
-        self.trajectory_controller.trajectory_callback(traj_type="circle")
+        self.trajectory_controller.trajectory_callback(
+            traj_type="circle", curr_pos=self.curr_position
+        )
         self.trajectory_controller.publish_bool(True)
 
     def start_automatic(self, mode):
@@ -74,7 +79,7 @@ class AdvancedController(OffboardControl):
         if mode == 0:
             self.reset_automatic()
             self.auto_traj_flag = True
-            rospy.loginfo('Starting traj control ...')
+            rospy.loginfo("Starting traj control ...")
 
     def is_point_in_cube(self, coord, corner1, corner2):
         """ Enhance base method with setting automatic flag if position outside of cube """
@@ -85,5 +90,5 @@ class AdvancedController(OffboardControl):
 
     def sleep_checker(self, counter, freq):
         """ Checks if counter is high enough compared to heartbeat frequency """
-        bool = (counter >= int((1 / self.updateTime) / freq) - 1)
+        bool = counter >= int((1 / self.updateTime) / freq) - 1
         return bool

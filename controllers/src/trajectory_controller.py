@@ -20,17 +20,15 @@ class TrajectoryController(object):
             "/command/trajectory", MultiDOFJointTrajectory, queue_size=1
         )
 
-        self.bool_publisher = rospy.Publisher(
-            "/ext_traj/bool", Bool, queue_size=1
-        )
+        self.bool_publisher = rospy.Publisher("/ext_traj/bool", Bool, queue_size=1)
 
         # start_time stores the t = 0 for each segment of flight
         self.start_time = 0
 
-    def trajectory_callback(self, traj_type):
+    def trajectory_callback(self, traj_type, curr_pos):
 
         if traj_type == "circle":
-            self.follow_circle()
+            self.follow_circle(curr_pos)
 
         msg = MultiDOFJointTrajectory()
         msg.points = [MultiDOFJointTrajectoryPoint()]
@@ -58,10 +56,17 @@ class TrajectoryController(object):
 
         self.coordinate_publisher.publish(msg)
 
-    def follow_circle(self):
+    def follow_circle(self, curr_pos):
         current_time = rospy.get_time()
+
+        # If self.start_time is 0 (i.e. the drone has just switched to using geometric
+        # controller), the current time and starting pos will be updated
         if self.start_time == 0:
             self.start_time = current_time
+            self.starting_x = curr_pos.x
+            self.starting_y = curr_pos.y
+            self.starting_z = curr_pos.z
+
         time_difference = current_time - self.start_time
 
         # Functions are evaluated at each time step, and published in a message to the
@@ -74,7 +79,7 @@ class TrajectoryController(object):
 
         self.desired_pos[0][0] = x_des
         self.desired_pos[1][0] = y_des
-        self.desired_pos[2][0] = 1.5
+        self.desired_pos[2][0] = self.starting_z
         self.desired_vel[0][0] = vx_des
         self.desired_vel[1][0] = vy_des
         self.desired_vel[2][0] = 0
@@ -82,13 +87,13 @@ class TrajectoryController(object):
         self.desired_acc[1][0] = ay_des
         self.desired_acc[2][0] = 0
 
-    # In the methods below, x = 3cos(t) and y = 3sin(t) were chosen arbitrarily. Any
+    # The functions in the methods below were chosen arbitrarily. Any
     # mathematical functions can be chosen, the only requirement is that the first and
     # second derivatives of the functions must be put in the velocity and acceleration
     # functions respectively
     def calculate_position(self, time, radius, factor):
-        x = radius * np.sin(time * factor)
-        y = radius * np.cos(time * factor) - radius
+        x = radius * np.sin(time * factor) + self.starting_x
+        y = radius * np.cos(time * factor) - radius + self.starting_y
 
         return x, y
 
