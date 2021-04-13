@@ -6,5 +6,6 @@
 		<rosparam param="safe_cube_corner_2"> [2.5, 2.5, 2.5] </rosparam>
 		<rosparam param="euler_limit"> [8, 8, 15] </rosparam>
 		<param name="bool_sim" value="False" />
+		<param name="adv_ctrl" value="True" />
 	</node>
 </launch>
