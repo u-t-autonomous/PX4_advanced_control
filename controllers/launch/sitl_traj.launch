@@ -26,7 +26,7 @@
             <param name="Kp_y" value="8.0" />
             <param name="Kp_z" value="10.0" />
             <param name="normalizedthrust_constant" value="0.037" />
-		    <param name="normalizedthrust_offset" value="0" />
+            <param name="normalizedthrust_offset" value="0" />
     </node>
 
     <!-- launch Gazebo, ROS, Mavros, etc -->
