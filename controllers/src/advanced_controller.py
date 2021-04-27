@@ -69,7 +69,7 @@ class AdvancedController(OffboardControl):
         Input code for trajectory controller here
         """
         self.trajectory_controller.trajectory_callback(
-            traj_type="circle", curr_pos=self.curr_position
+            traj_type="point", curr_pos=self.curr_position
         )
         self.trajectory_controller.publish_bool(True)
 

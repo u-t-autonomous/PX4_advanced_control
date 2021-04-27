@@ -29,6 +29,8 @@ class TrajectoryController(object):
 
         if traj_type == "circle":
             self.follow_circle(curr_pos)
+        elif traj_type == "point":
+            self.hover_at_point(curr_pos)
 
         msg = MultiDOFJointTrajectory()
         msg.points = [MultiDOFJointTrajectoryPoint()]
@@ -108,6 +110,27 @@ class TrajectoryController(object):
         ay = -(factor ** 2) * radius * np.cos(time * factor)
 
         return ax, ay
+
+    def hover_at_point(self, curr_pos):
+        current_time = rospy.get_time()
+
+        # If self.start_time is 0 (i.e. the drone has just switched to using geometric
+        # controller), the current time and desired pos will be updated
+        if self.start_time == 0:
+            self.start_time = current_time
+            self.desired_x = curr_pos.x
+            self.desired_y = curr_pos.y
+            self.desired_z = curr_pos.z
+
+        self.desired_pos[0][0] = self.desired_x
+        self.desired_pos[1][0] = self.desired_y
+        self.desired_pos[2][0] = self.desired_z
+        self.desired_vel[0][0] = 0
+        self.desired_vel[1][0] = 0
+        self.desired_vel[2][0] = 0
+        self.desired_acc[0][0] = 0
+        self.desired_acc[1][0] = 0
+        self.desired_acc[2][0] = 0
 
     def calculate_yaw(self):
         return np.arctan2(self.desired_vel[1][0], self.desired_vel[0][0])
