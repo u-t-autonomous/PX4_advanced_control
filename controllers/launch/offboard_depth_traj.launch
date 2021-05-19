@@ -3,6 +3,19 @@
     <arg name="command_input" default="2" />
     <arg name="gazebo_simulation" default="true" />
 
+	<include file="$(find structure_core_ros_driver)/launch/sc.launch">
+		<arg name="name"                  value="camera_main"/>
+		<arg name="required"              value="true"/>
+		<arg name="serial_number"         value="null"/>
+		<arg name="infrared_enable"       value="false" />
+		<arg name="depth_enable"          value="true" />
+		<arg name="depth_pcloud_enable"   value="false" />
+		<arg name="frame_sync_enabled"    value="false" />
+		<arg name="depth_framerate"       value="30.0" />
+		<arg name="depth_resolution"      value="VGA" />
+		<arg name="depth_apply_correction_before_stream"              value="true"/>
+    </include>
+
 	<node pkg="geometric_controller" type="geometric_controller_node" name="geometric_controller" output="screen">
 		<param name="mav_name" type="string" value="$(arg mav_name)" />
 		<remap from="command/bodyrate_command" to="/mavros/setpoint_raw/attitude"/>
@@ -23,4 +36,8 @@
 
 	<!-- run batch file -->
   	<node name="offboard_setup" pkg="controllers" type="offboard_setup.sh" output="screen"/>
+
+	<!-- set or toggle rqt parameters -->
+    <node name="rqt_param_toggle" pkg="local_planner" type="rqt_param_toggle.sh" />
+	
 </launch>
