@@ -73,7 +73,7 @@ class TrajectoryController(object):
 
         # Functions are evaluated at each time step, and published in a message to the
         # controller
-        factor = 0.5
+        factor = 1.5
         radius = 1.5
         x_des, y_des = self.calculate_position(time_difference, radius, factor)
         vx_des, vy_des = self.calculate_velocity(time_difference, radius, factor)
