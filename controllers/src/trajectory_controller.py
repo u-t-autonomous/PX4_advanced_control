@@ -3,10 +3,19 @@
 import numpy as np
 import rospy
 
+from ego_planner.msg import Bspline
 from geometry_msgs.msg import Transform, Twist
 from std_msgs.msg import Bool
 from tf.transformations import quaternion_from_euler
 from trajectory_msgs.msg import MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
+
+
+MIN_Z = 1.0
+MAX_Z = 2.0
+MAX_VEL = 2.0
+MAX_ACC = 5.0
+MAX_JERK = 5.0
+MAX_ANG_VEL = np.pi / 4
 
 
 class TrajectoryController(object):
@@ -22,8 +31,18 @@ class TrajectoryController(object):
 
         self.bool_publisher = rospy.Publisher("/ext_traj/bool", Bool, queue_size=1)
 
+        self.bspline_subscriber = rospy.Subscriber(
+            name="/planning/bspline",
+            data_class=Bspline,
+            callback=self.bspline_callback,
+            queue_size=1,
+        )
+
         # start_time stores the t = 0 for each segment of flight
         self.start_time = 0
+
+        self.yaw = 0
+        self.prev_eval_t = rospy.get_time()
 
     def trajectory_callback(self, traj_type, curr_pos):
 
@@ -31,6 +50,8 @@ class TrajectoryController(object):
             self.follow_circle(curr_pos)
         elif traj_type == "point":
             self.hover_at_point(curr_pos)
+        elif traj_type == "bspline":
+            self.follow_bspline()
 
         msg = MultiDOFJointTrajectory()
         msg.points = [MultiDOFJointTrajectoryPoint()]
@@ -75,41 +96,19 @@ class TrajectoryController(object):
         # controller
         factor = 1.5
         radius = 1.5
-        x_des, y_des = self.calculate_position(time_difference, radius, factor)
-        vx_des, vy_des = self.calculate_velocity(time_difference, radius, factor)
-        ax_des, ay_des = self.calculate_acceleration(time_difference, radius, factor)
+        x_des, y_des = self.calculate_circle_position(time_difference, radius, factor)
+        vx_des, vy_des = self.calculate_circle_velocity(time_difference, radius, factor)
+        ax_des, ay_des = self.calculate_circle_acceleration(time_difference, radius, factor)
 
-        self.desired_pos[0][0] = x_des
-        self.desired_pos[1][0] = y_des
+        self.desired_pos[0][0] = radius * np.sin(time_difference * factor) + self.starting_x
+        self.desired_pos[1][0] = radius * np.cos(time_difference * factor) - radius + self.starting_y
         self.desired_pos[2][0] = self.starting_z
-        self.desired_vel[0][0] = vx_des
-        self.desired_vel[1][0] = vy_des
+        self.desired_vel[0][0] = factor * radius * np.cos(time_difference * factor)
+        self.desired_vel[1][0] = -factor * radius * np.sin(time_difference * factor)
         self.desired_vel[2][0] = 0
-        self.desired_acc[0][0] = ax_des
-        self.desired_acc[1][0] = ay_des
+        self.desired_acc[0][0] = -(factor ** 2) * radius * np.sin(time_difference * factor)
+        self.desired_acc[1][0] = -(factor ** 2) * radius * np.cos(time_difference * factor)
         self.desired_acc[2][0] = 0
-
-    # The functions in the methods below were chosen arbitrarily. Any
-    # mathematical functions can be chosen, the only requirement is that the first and
-    # second derivatives of the functions must be put in the velocity and acceleration
-    # functions respectively
-    def calculate_position(self, time, radius, factor):
-        x = radius * np.sin(time * factor) + self.starting_x
-        y = radius * np.cos(time * factor) - radius + self.starting_y
-
-        return x, y
-
-    def calculate_velocity(self, time, radius, factor):
-        vx = factor * radius * np.cos(time * factor)
-        vy = -factor * radius * np.sin(time * factor)
-
-        return vx, vy
-
-    def calculate_acceleration(self, time, radius, factor):
-        ax = -(factor ** 2) * radius * np.sin(time * factor)
-        ay = -(factor ** 2) * radius * np.cos(time * factor)
-
-        return ax, ay
 
     def hover_at_point(self, curr_pos):
         current_time = rospy.get_time()
@@ -132,8 +131,109 @@ class TrajectoryController(object):
         self.desired_acc[1][0] = 0
         self.desired_acc[2][0] = 0
 
+    def bspline_callback(self, msg):
+        # rospy.loginfo("Entered callback")
+
+        pos_pts = msg.pos_pts
+
+        x = []
+        y = []
+        z = []
+
+        for pt in pos_pts:
+            x.append(pt.x)
+            y.append(pt.y)
+            z.append(pt.z)
+
+        self.pos_x = scipy.interpolate.BSpline(
+            t=msg.knots, c=x, k=msg.order, extrapolate=False
+        )
+        self.vel_x = self.pos_x.derivative()
+        self.acc_x = self.vel_x.derivative()
+
+        self.pos_y = scipy.interpolate.BSpline(
+            t=msg.knots, c=y, k=msg.order, extrapolate=False
+        )
+        self.vel_y = self.pos_y.derivative()
+        self.acc_y = self.vel_y.derivative()
+
+        self.pos_z = scipy.interpolate.BSpline(
+            t=msg.knots, c=z, k=msg.order, extrapolate=False
+        )
+        self.vel_z = self.pos_z.derivative()
+        self.acc_z = self.vel_z.derivative()
+
+        self.start_time = msg.start_time.to_sec()
+
+    def follow_bspline(self,):
+        try:
+            current_time = rospy.get_time() - self.start_time
+
+            # Previously found Bsplines are evaluated
+            x_des = self.pos_x(current_time)
+            y_des = self.pos_y(current_time)
+            z_des = self.pos_z(current_time)
+            vx_des = self.vel_x(current_time)
+            vy_des = self.vel_y(current_time)
+            vz_des = self.vel_z(current_time)
+            ax_des = self.acc_x(current_time)
+            ay_des = self.acc_y(current_time)
+            az_des = self.acc_z(current_time)
+
+            if (
+                np.isnan(x_des)
+                or np.isnan(y_des)
+                or np.isnan(z_des)
+                or np.isnan(vx_des)
+                or np.isnan(vy_des)
+                or np.isnan(vz_des)
+                or np.isnan(ax_des)
+                or np.isnan(ay_des)
+                or np.isnan(az_des)
+            ):
+                rospy.logwarn_once("Run `roslaunch ego_planner run_with_vicon.launch` now")
+            else:
+                self.desired_pos[0][0] = self.clip_by_derivative(self.desired_pos[0][0], x_des, MAX_VEL)
+                self.desired_pos[1][0] = self.clip_by_derivative(self.desired_pos[1][0], y_des, MAX_VEL)
+                self.desired_pos[2][0] = self.clip_by_derivative(self.desired_pos[2][0], z_des, MAX_VEL)
+                self.desired_pos[2][0] = np.clip(self.desired_pos[2][0], MIN_Z, MAX_Z)
+                self.desired_vel[0][0] = self.clip_by_derivative(self.desired_vel[0][0], vx_des, MAX_ACC)
+                self.desired_vel[1][0] = self.clip_by_derivative(self.desired_vel[1][0], vy_des, MAX_ACC)
+                self.desired_vel[2][0] = self.clip_by_derivative(self.desired_vel[2][0], vz_des, MAX_ACC)
+                self.desired_vel = np.clip(self.desired_vel, -MAX_VEL, MAX_VEL)
+                self.desired_acc[0][0] = self.clip_by_derivative(self.desired_acc[0][0], ax_des, MAX_JERK)
+                self.desired_acc[1][0] = self.clip_by_derivative(self.desired_acc[1][0], ay_des, MAX_JERK)
+                self.desired_acc[2][0] = self.clip_by_derivative(self.desired_acc[2][0], az_des, MAX_JERK)
+                self.desired_acc = np.clip(self.desired_acc, -MAX_ACC, MAX_ACC)
+
+        except Exception:
+            rospy.logwarn_once("Run `roslaunch ego_planner run_with_vicon.launch` now")
+
+    def clip_by_derivative(self, prev_val, val, max_der):
+        max_change = max_der * (self.eval_t - self.prev_eval_t)
+        return np.clip(val, prev_val - max_change, prev_val + max_change)
+
     def calculate_yaw(self):
-        return np.arctan2(self.desired_vel[1][0], self.desired_vel[0][0])
+        prev_yaw = self.yaw
+        new_yaw = np.arctan2(self.desired_vel[1][0], self.desired_vel[0][0])
+        max_yaw_change = MAX_ANG_VEL * (self.eval_t - self.prev_eval_t)
+        if new_yaw - prev_yaw > np.pi:
+            if new_yaw - prev_yaw - 2 * np.pi < -max_yaw_change:
+                new_yaw = prev_yaw - max_yaw_change
+        elif new_yaw - prev_yaw < -np.pi:
+            if new_yaw - prev_yaw + 2 * np.pi > max_yaw_change:
+                new_yaw = prev_yaw + max_yaw_change
+        else:
+            if new_yaw - prev_yaw < -max_yaw_change:
+                new_yaw = prev_yaw - max_yaw_change
+            elif new_yaw - prev_yaw > max_yaw_change:
+                new_yaw = prev_yaw + max_yaw_change
+        if new_yaw > np.pi:
+            new_yaw -= 2 * np.pi
+        if new_yaw < -np.pi:
+            new_yaw += 2 * np.pi
+        self.yaw = new_yaw
+        return new_yaw
 
     def publish_bool(self, value):
         bool_msg = Bool()
