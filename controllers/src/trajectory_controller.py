@@ -2,6 +2,7 @@
 
 import numpy as np
 import rospy
+import scipy.interpolate
 
 from ego_planner.msg import Bspline
 from geometry_msgs.msg import Transform, Twist
