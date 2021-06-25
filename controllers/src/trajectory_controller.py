@@ -4,7 +4,7 @@ import numpy as np
 import rospy
 import scipy.interpolate
 
-from ego_planner.msg import Bspline
+from controllers.msg import Bspline
 from geometry_msgs.msg import Transform, Twist
 from std_msgs.msg import Bool
 from tf.transformations import quaternion_from_euler
@@ -46,7 +46,7 @@ class TrajectoryController(object):
         self.prev_eval_t = rospy.get_time()
 
     def trajectory_callback(self, traj_type, curr_pos):
-
+        self.eval_t = rospy.get_time()
         if traj_type == "circle":
             self.follow_circle(curr_pos)
         elif traj_type == "point":
@@ -97,9 +97,6 @@ class TrajectoryController(object):
         # controller
         factor = 1.5
         radius = 1.5
-        x_des, y_des = self.calculate_circle_position(time_difference, radius, factor)
-        vx_des, vy_des = self.calculate_circle_velocity(time_difference, radius, factor)
-        ax_des, ay_des = self.calculate_circle_acceleration(time_difference, radius, factor)
 
         self.desired_pos[0][0] = radius * np.sin(time_difference * factor) + self.starting_x
         self.desired_pos[1][0] = radius * np.cos(time_difference * factor) - radius + self.starting_y
@@ -133,7 +130,7 @@ class TrajectoryController(object):
         self.desired_acc[2][0] = 0
 
     def bspline_callback(self, msg):
-        # rospy.loginfo("Entered callback")
+        rospy.loginfo("Entered bspline callback")
 
         pos_pts = msg.pos_pts
 
