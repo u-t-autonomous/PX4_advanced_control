@@ -47,12 +47,13 @@ class TrajectoryController(object):
 
     def trajectory_callback(self, traj_type, curr_pos):
 
+        self.eval_t = rospy.get_time()  # used in self.follow_bspline() and self.get_yaw()
         if traj_type == "circle":
             self.follow_circle(curr_pos)
         elif traj_type == "point":
             self.hover_at_point(curr_pos)
         elif traj_type == "bspline":
-            self.follow_bspline()
+            self.follow_bspline(curr_pos)
 
         msg = MultiDOFJointTrajectory()
         msg.points = [MultiDOFJointTrajectoryPoint()]
@@ -166,7 +167,8 @@ class TrajectoryController(object):
 
         self.start_time = msg.start_time.to_sec()
 
-    def follow_bspline(self,):
+    def follow_bspline(self, curr_pos):
+        self.hover_at_point(curr_pos)
         try:
             current_time = rospy.get_time() - self.start_time
 
