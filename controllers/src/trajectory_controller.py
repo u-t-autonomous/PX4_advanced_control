@@ -11,11 +11,11 @@ from tf.transformations import quaternion_from_euler
 from trajectory_msgs.msg import MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 
 
-MIN_Z = 1.0
+MIN_Z = 0.5
 MAX_Z = 2.0
-MAX_VEL = 2.0
-MAX_ACC = 5.0
-MAX_JERK = 5.0
+MAX_VEL = 1.0
+MAX_ACC = 2.0
+MAX_JERK = 4.0
 MAX_ANG_VEL = np.pi / 4
 
 
@@ -41,6 +41,8 @@ class TrajectoryController(object):
 
         # start_time stores the t = 0 for each segment of flight
         self.start_time = 0
+        self.bspline_start_time = None
+        self.in_hover = False
 
         self.yaw = 0
         self.prev_eval_t = rospy.get_time()
@@ -161,12 +163,29 @@ class TrajectoryController(object):
         self.vel_z = self.pos_z.derivative()
         self.acc_z = self.vel_z.derivative()
 
-        self.start_time = msg.start_time.to_sec()
+        self.bspline_start_time = msg.start_time.to_sec()
+        self.in_hover = False
+
+    def get_in_hover(self, curr_pos):
+        if not self.in_hover:
+            self.in_hover = True
+            self.desired_x = curr_pos.x
+            self.desired_y = curr_pos.y
+            self.desired_z = curr_pos.z
+
+        self.desired_pos[0][0] = self.desired_x
+        self.desired_pos[1][0] = self.desired_y
+        self.desired_pos[2][0] = self.desired_z
+        self.desired_vel[0][0] = 0
+        self.desired_vel[1][0] = 0
+        self.desired_vel[2][0] = 0
+        self.desired_acc[0][0] = 0
+        self.desired_acc[1][0] = 0
+        self.desired_acc[2][0] = 0
 
     def follow_bspline(self, curr_pos):
-        self.hover_at_point(curr_pos)
         try:
-            current_time = rospy.get_time() - self.start_time
+            current_time = rospy.get_time() - self.bspline_start_time
 
             # Previously found Bsplines are evaluated
             x_des = self.pos_x(current_time)
@@ -190,7 +209,7 @@ class TrajectoryController(object):
                 or np.isnan(ay_des)
                 or np.isnan(az_des)
             ):
-                rospy.logwarn_once("Run `roslaunch ego_planner run_with_vicon.launch` now")
+                self.get_in_hover(curr_pos)
             else:
                 self.desired_pos[0][0] = self.clip_by_derivative(self.desired_pos[0][0], x_des, MAX_VEL)
                 self.desired_pos[1][0] = self.clip_by_derivative(self.desired_pos[1][0], y_des, MAX_VEL)
@@ -206,6 +225,7 @@ class TrajectoryController(object):
                 self.desired_acc = np.clip(self.desired_acc, -MAX_ACC, MAX_ACC)
 
         except Exception:
+            self.get_in_hover(curr_pos)
             rospy.logwarn_once("Run `roslaunch ego_planner run_with_vicon.launch` now")
 
     def clip_by_derivative(self, prev_val, val, max_der):
