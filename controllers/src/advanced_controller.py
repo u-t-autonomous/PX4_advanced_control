@@ -6,11 +6,12 @@ from trajectory_controller import TrajectoryController
 class AdvancedController(OffboardControl):
     """ Extends basic drone controller with advanced control methods """
 
-    def __init__(self, hoverVal=0.5, updateTime=0.01, bool_sim=False):
+    def __init__(self, hoverVal=0.5, updateTime=0.01, bool_sim=False, bool_bspline_traj=False):
         super(AdvancedController, self).__init__(
             hoverVal=hoverVal, updateTime=updateTime
         )
         self.bool_sim = bool_sim
+        self.bool_bspline_traj = bool_bspline_traj
         self.trajectory_controller = TrajectoryController()
         self.reset_automatic()
         self.auto_traj_freq = rospy.get_param("~traj_freq", 50)
@@ -69,7 +70,7 @@ class AdvancedController(OffboardControl):
         Input code for trajectory controller here
         """
         self.trajectory_controller.trajectory_callback(
-            traj_type="circle", curr_pos=self.curr_position
+            traj_type="bspline" if self.bool_bspline_traj else "circle", curr_pos=self.curr_position
         )
         self.trajectory_controller.publish_bool(True)
 

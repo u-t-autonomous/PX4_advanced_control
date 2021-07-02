@@ -29,6 +29,7 @@ def main():
 
     # check whether advanced controller should be started
     bool_adv_ctrl = rospy.get_param('~adv_ctrl', False)
+    bool_bspline_traj = rospy.get_param('~bspline_traj', False)
     bool_sim = rospy.get_param('~bool_sim', False)
     if bool_sim:
         hoverVal = 0.565  # Value used only when simulation in gazebo
@@ -38,7 +39,7 @@ def main():
     # Set up controllers and subscribers
     if bool_adv_ctrl:
         offboard_controller = AdvancedController(hoverVal=hoverVal, updateTime=1.0/updateFreq,
-                                           bool_sim=bool_sim)
+                                                 bool_sim=bool_sim, bool_bspline_traj=bool_bspline_traj)
         cmd_line = CommandLineExt(offboard_controller)
 
     else:
