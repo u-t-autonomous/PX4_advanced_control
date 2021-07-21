@@ -11,12 +11,12 @@ from tf.transformations import quaternion_from_euler
 from trajectory_msgs.msg import MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 
 
-MIN_Z = 0.5
+MIN_Z = 0.8
 MAX_Z = 2.0
 MAX_VEL = 1.0
 MAX_ACC = 2.0
 MAX_JERK = 4.0
-MAX_ANG_VEL = np.pi / 4
+MAX_ANG_VEL = np.pi / 12
 
 
 class TrajectoryController(object):
@@ -168,6 +168,7 @@ class TrajectoryController(object):
 
     def get_in_hover(self, curr_pos):
         if not self.in_hover:
+            rospy.loginfo("hover until received next bspline.")
             self.in_hover = True
             self.desired_x = curr_pos.x
             self.desired_y = curr_pos.y
