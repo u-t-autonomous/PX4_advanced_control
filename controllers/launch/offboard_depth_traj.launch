@@ -8,11 +8,13 @@
 		<arg name="required"              value="true"/>
 		<arg name="serial_number"         value="null"/>
 		<arg name="infrared_enable"       value="false" />
+		<arg name="visible_enable"       value="false" />
 		<arg name="depth_enable"          value="true" />
 		<arg name="depth_pcloud_enable"   value="false" />
 		<arg name="frame_sync_enabled"    value="false" />
-		<arg name="depth_framerate"       value="30.0" />
-		<arg name="depth_resolution"      value="VGA" />
+		<arg name="depth_framerate"       value="15.0" />
+		<arg name="depth_resolution"      value="_320x240" />
+                <arg name="latency_reducer_enabled" value="true" />
 		<arg name="depth_apply_correction_before_stream"              value="true"/>
     </include>
 
