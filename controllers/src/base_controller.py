@@ -4,6 +4,7 @@
 import rospy
 import tf
 import math
+import random
 
 # 3D point & Stamped Pose msgs
 from geometry_msgs.msg import Point, Vector3, PoseStamped, PolygonStamped
@@ -87,6 +88,11 @@ class OffboardControl(object):
         self.rel_pos_limit = rospy.get_param('~rel_pos_limit', 0.15) # limit in [m]
         if self.rel_pos_limit < 0:
             raise ValueError
+        # Used to check if the drone is approximately still
+        # 10 hz
+        self.is_moving_cooldown = 5
+        self.is_moving = True
+        self.coords_index = 0
 
     def update(self):
         """ Heartbeat of drone """
@@ -105,6 +111,10 @@ class OffboardControl(object):
 
     def move(self, x, y, z, rate=False):
         """ Gives position or velocity commands to drone"""
+        if rate==False:
+            rospy.loginfo("Moving to point {} {} {}".format(x, y, z))
+        self.is_moving = True
+        self.is_moving_cooldown = 10
         self.is_posctl = True # This is definitely posctl -> so update the variable
         # If this is velocity control change the type mask
         if rate:
@@ -342,10 +352,29 @@ class OffboardControl(object):
     def state_callback(self, msg):
         self.state = msg
 
+    def check_moving(self, msg, epsilon=0.05):
+        self.is_moving_cooldown-=1
+        if self.is_moving_cooldown == 0:
+            self.is_moving_cooldown = 5
+            self.is_moving = (abs(msg.velocity.x) > epsilon) or (abs(msg.velocity.y) > epsilon) \
+                             or (abs(msg.velocity.z) > epsilon)
+
+    def next_point(self):
+        # TODO: Implement next point retrieval
+        x_coords = [0,  -1, -0.75, -0.5, -0.25,   0]
+        y_coords = [0,   1,   0.5,    0,  -0.5,  -1]
+        z_coords = [1, 0.5,     1,  1.5,     1, 0.5]
+        x = x_coords[self.coords_index]
+        y = y_coords[self.coords_index]
+        z = z_coords[self.coords_index]
+        self.coords_index = (self.coords_index + 1) % len(x_coords)
+        self.move(x, y, z)
+
     def setTakeoff(self, height=1.5):
         self.setArm()
         self.setOffboardMode()
         self.move(self.curr_position.x, self.curr_position.y, height)
+        self.is_moving_cooldown = 50
 
     def setLand(self):
         try:
