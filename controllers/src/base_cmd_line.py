@@ -27,6 +27,7 @@ class CommandLine(object):
                              'setpoint': self.offboard_controller.log_setpoint,
                              'stop': self.offboard_controller.stop,
                              'm': self.offboard_controller.jump,
+                             'start_script': self.offboard_controller.start_script,
                              }
         self.warn_args = False
 
@@ -63,6 +64,8 @@ class CommandLine(object):
         elif (val[0] == 'xpos' or val[0] == 'ypos' or val[0] == 'zpos') \
                 and self.check_input_length(2, len(val)):
             self.dict_command[val[0]](val[0], float(val[1]))
+        elif val[0] == 'start_script':
+            self.dict_command[val[0]]()
         else:
             return False
         # returns true if val was an implemented command
@@ -71,6 +74,10 @@ class CommandLine(object):
     def process_command(self, val):
         """ Checks if command line input is valid """
         self.warn_args = False
+        # Turn off script control
+        if self.offboard_controller.script_ctl == True:
+            rospy.loginfo("Entering command line control. Use start_script to resume scripted control")
+            self.offboard_controller.script_ctl = False
         if val[0] in self.dict_command:
             # see if special condition applies for input
             bool_success = self.command(val)

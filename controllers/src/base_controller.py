@@ -88,11 +88,9 @@ class OffboardControl(object):
         self.rel_pos_limit = rospy.get_param('~rel_pos_limit', 0.15) # limit in [m]
         if self.rel_pos_limit < 0:
             raise ValueError
-        # Used to check if the drone is approximately still
-        # 10 hz
-        self.is_moving_cooldown = 5
-        self.is_moving = True
+        self.target_reached = True
         self.coords_index = 0
+        self.script_ctl = False
 
     def update(self):
         """ Heartbeat of drone """
@@ -112,10 +110,9 @@ class OffboardControl(object):
     def move(self, x, y, z, rate=False):
         """ Gives position or velocity commands to drone"""
         if rate==False:
-            rospy.loginfo("Moving to point {} {} {}".format(x, y, z))
-        self.is_moving = True
-        self.is_moving_cooldown = 10
+            rospy.loginfo("Moving to point {:.3f} {:.3f} {:.3f}".format(x, y, z))
         self.is_posctl = True # This is definitely posctl -> so update the variable
+        self.target_reached = False
         # If this is velocity control change the type mask
         if rate:
             self.setpoint_target.type_mask =  \
@@ -329,6 +326,13 @@ class OffboardControl(object):
         self.curr_orientation.x = euler[0]#roll
         self.curr_orientation.y = euler[1]#pitch
         self.curr_orientation.z = euler[2]#yaw
+        if self.is_posctl and not self.target_reached:
+            self.target_reached = self.check_target_reached()
+            if self.target_reached:
+                rospy.loginfo("Target {:.3f} {:.3f} {:.3f} reached!".format(
+                                self.setpoint_target.position.x,
+                                self.setpoint_target.position.y,
+                                self.setpoint_target.position.z))
 
     def estimate_callback(self, msg):
         euler = tf.transformations.euler_from_quaternion((msg.pose.orientation.x,
@@ -352,12 +356,10 @@ class OffboardControl(object):
     def state_callback(self, msg):
         self.state = msg
 
-    def check_moving(self, msg, epsilon=0.05):
-        self.is_moving_cooldown-=1
-        if self.is_moving_cooldown == 0:
-            self.is_moving_cooldown = 5
-            self.is_moving = (abs(msg.velocity.x) > epsilon) or (abs(msg.velocity.y) > epsilon) \
-                             or (abs(msg.velocity.z) > epsilon)
+    def check_target_reached(self, epsilon=0.05):
+        return ((abs(self.curr_position.x - self.setpoint_target.position.x) < epsilon) and \
+                (abs(self.curr_position.y - self.setpoint_target.position.y) < epsilon) and \
+                (abs(self.curr_position.z - self.setpoint_target.position.z) < epsilon))
 
     def next_point(self):
         # TODO: Implement next point retrieval
@@ -368,13 +370,19 @@ class OffboardControl(object):
         y = y_coords[self.coords_index]
         z = z_coords[self.coords_index]
         self.coords_index = (self.coords_index + 1) % len(x_coords)
+
         self.move(x, y, z)
+
+    def start_script(self):
+        rospy.loginfo("Starting scripted control. Enter any command (valid or invalid) "
+                      "into command line to stop script and switch to command line control")
+        self.target_reached = True
+        self.script_ctl = True
 
     def setTakeoff(self, height=1.5):
         self.setArm()
         self.setOffboardMode()
         self.move(self.curr_position.x, self.curr_position.y, height)
-        self.is_moving_cooldown = 50
 
     def setLand(self):
         try:

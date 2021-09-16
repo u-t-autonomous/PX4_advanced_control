@@ -4,7 +4,7 @@
   <node name="sim_env_setup" pkg="controllers" type="sim_env_setup.sh"/>
 
   <!-- launch custom node -->
-  	<node name="script_control" pkg="controllers" type="script_control.py" output="screen">
+  	<node name="script_control" pkg="controllers" type="script_control.py" output="screen" launch-prefix="gnome-terminal --">
 		<param name="bool_sim" value="True" />
 		<param name="adv_ctrl" value="True" />
 	</node>

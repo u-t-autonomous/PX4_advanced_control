@@ -35,6 +35,7 @@ def main():
     else:
         hoverVal = rospy.get_param('~hoverThrust', 0.44)
     offboard_controller = OffboardControl(hoverVal=hoverVal, updateTime=1.0/updateFreq)
+    cmd_line = CommandLine(offboard_controller)
 
     if bool_sim:
         rospy.Subscriber('mavros/local_position/pose', PoseStamped,
@@ -48,25 +49,25 @@ def main():
                      offboard_controller.state_callback)
     rospy.Subscriber('mavros/setpoint_raw/target_attitude', AttitudeTarget,
                      offboard_controller.euler_callback)
-    rospy.Subscriber('mavros/setpoint_raw/target_local', PositionTarget,
-                     offboard_controller.check_moving)
 
 
     # Sleep some time for the system to be ready
     for _ in range(1000):
         rate.sleep()
 
+    # create input thread for command line inputs! Must be separate from main thread running ROS
+    input_thread = threading.Thread(target=cmd_line.get_command_from_console,
+                                    name='input command thread')
+    input_thread.start()
+
     if bool_sim:
         rospy.loginfo(" --- STARTING SIMULATION! --- ")
     else:
         rospy.loginfo(" --- STARTING EXPERIMENT! --- ")
 
-    rospy.loginfo("Arming and setting to offboard")
-    offboard_controller.setTakeoff()
-
     while not rospy.is_shutdown():
         offboard_controller.update()
-        if not offboard_controller.is_moving:
+        if (offboard_controller.script_ctl == True) and offboard_controller.target_reached:
             offboard_controller.next_point()
         rate.sleep()
 
