@@ -25,6 +25,9 @@
             <emissive>1 0 0 1</emissive>
             <diffuse>1 0 0 1</diffuse>
           </material>
+          <plugin name="visualChange1" filename="libChangeTargetVisual.so">
+            <contains_topic>target1_contains/contain</contains_topic>
+          </plugin>
         </visual>
       </link>
     </model>
@@ -43,6 +46,9 @@
             <emissive>1 0 0 1</emissive>
             <diffuse>1 0 0 1</diffuse>
           </material>
+          <plugin name="visualChange2" filename="libChangeTargetVisual.so">
+            <contains_topic>target2_contains/contain</contains_topic>
+          </plugin>
         </visual>
       </link>
     </model>
@@ -61,6 +67,9 @@
             <emissive>1 0 0 1</emissive>
             <diffuse>1 0 0 1</diffuse>
           </material>
+          <plugin name="visualChange3" filename="libChangeTargetVisual.so">
+            <contains_topic>target3_contains/contain</contains_topic>
+          </plugin>
         </visual>
       </link>
     </model>
@@ -79,6 +88,9 @@
             <emissive>1 0 0 1</emissive>
             <diffuse>1 0 0 1</diffuse>
           </material>
+          <plugin name="visualChange4" filename="libChangeTargetVisual.so">
+            <contains_topic>target4_contains/contain</contains_topic>
+          </plugin>
         </visual>
       </link>
     </model>
@@ -104,5 +116,55 @@
       <real_time_update_rate>250</real_time_update_rate>
       <magnetic_field>6.0e-6 2.3e-5 -4.2e-5</magnetic_field>
     </physics>
+
+    <!-- Plugins -->
+    <plugin name='target1Plugin' filename='libContainPlugin.so'>
+      <enabled>true</enabled>
+      <entity>iris::base_link</entity>
+      <namespace>target1_contains</namespace>
+      <pose>1.5 1.5 0 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>1 1 10</size>
+        </box>
+      </geometry>
+    </plugin>
+
+    <plugin name='target2Plugin' filename='libContainPlugin.so'>
+      <enabled>true</enabled>
+      <entity>iris::base_link</entity>
+      <namespace>target2_contains</namespace>
+      <pose>-1.5 1.5 0 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>1 1 10</size>
+        </box>
+      </geometry>
+    </plugin>
+
+    <plugin name='target3Plugin' filename='libContainPlugin.so'>
+      <enabled>true</enabled>
+      <entity>iris::base_link</entity>
+      <namespace>target3_contains</namespace>
+      <pose>1.5 -1.5 0 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>1 1 10</size>
+        </box>
+      </geometry>
+    </plugin>
+
+    <plugin name='target4Plugin' filename='libContainPlugin.so'>
+      <enabled>true</enabled>
+      <entity>iris::base_link</entity>
+      <namespace>target4_contains</namespace>
+      <pose>-1.5 -1.5 0 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>1 1 10</size>
+        </box>
+      </geometry>
+    </plugin>
+
   </world>
 </sdf>

@@ -363,9 +363,9 @@ class OffboardControl(object):
 
     def next_point(self):
         # TODO: Implement next point retrieval
-        x_coords = [0,  -1, -0.75, -0.5, -0.25,   0]
-        y_coords = [0,   1,   0.5,    0,  -0.5,  -1]
-        z_coords = [1, 0.5,     1,  1.5,     1, 0.5]
+        x_coords = [-1.5, -1.5,  1.5,  1.5]
+        y_coords = [-1.5,  1.5, -1.5,  1.5]
+        z_coords = [ 1.5,  1.5,  1.5,  1.5]
         x = x_coords[self.coords_index]
         y = y_coords[self.coords_index]
         z = z_coords[self.coords_index]
