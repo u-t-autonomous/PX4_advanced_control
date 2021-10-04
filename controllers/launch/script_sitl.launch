@@ -1,10 +1,11 @@
 <launch>
-  
   <!-- launch Gazebo, ROS, Mavros, etc -->
   <node name="sim_env_setup" pkg="controllers" type="sim_env_setup.sh"/>
 
   <!-- launch custom node -->
-  	<node name="script_control" pkg="controllers" type="script_control.py" output="screen" launch-prefix="gnome-terminal --">
+  <node name="script_control" pkg="controllers" type="script_control.py" output="screen" launch-prefix="gnome-terminal --">
+  	<rosparam param="safe_cube_corner_1">[-5, -5, -0.5]</rosparam>
+  	<rosparam param="safe_cube_corner_2">[5, 5, 2]</rosparam>
 		<param name="bool_sim" value="True" />
 		<param name="adv_ctrl" value="True" />
 	</node>

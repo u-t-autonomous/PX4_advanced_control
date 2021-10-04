@@ -52,7 +52,7 @@ class OffboardControl(object):
         self.setpoint_target.coordinate_frame = 1
         # the type_mask here ignore all field except position x,y,z and yaw_rate
         self.setpoint_target.type_mask = int('100111111000', 2)
-        self.setpoint_target.yaw = 0.0
+        self.setpoint_target.yaw = 1.5708
         # Define the setpoint attitude target message
         # http://docs.ros.org/api/mavros_msgs/html/msg/AttitudeTarget.html
         self.attitude_target = AttitudeTarget()
@@ -89,8 +89,15 @@ class OffboardControl(object):
         if self.rel_pos_limit < 0:
             raise ValueError
         self.target_reached = True
-        self.coords_index = 0
+        self.coords_index = -1
         self.script_ctl = False
+        self.x_coords = []
+        self.y_coords = []
+        with open('/home/undergrad/catkin_ws/src/PX4_advanced_control/controllers/src/points.txt') as f:
+            for l in f:
+                row = l.split()
+                self.x_coords.append(float(row[0]))
+                self.y_coords.append(float(row[1]))
 
     def update(self):
         """ Heartbeat of drone """
@@ -362,16 +369,11 @@ class OffboardControl(object):
                 (abs(self.curr_position.z - self.setpoint_target.position.z) < epsilon))
 
     def next_point(self):
-        # TODO: Implement next point retrieval
-        x_coords = [-1.5, -1.5,  1.5,  1.5]
-        y_coords = [-1.5,  1.5, -1.5,  1.5]
-        z_coords = [ 1.5,  1.5,  1.5,  1.5]
-        x = x_coords[self.coords_index]
-        y = y_coords[self.coords_index]
-        z = z_coords[self.coords_index]
-        self.coords_index = (self.coords_index + 1) % len(x_coords)
-
-        self.move(x, y, z)
+        self.coords_index = (self.coords_index + 1)
+        if self.coords_index < len(self.x_coords):
+            x = self.x_coords[self.coords_index]
+            y = self.y_coords[self.coords_index]
+            self.move(x, y, 1.2)
 
     def start_script(self):
         rospy.loginfo("Starting scripted control. Enter any command (valid or invalid) "

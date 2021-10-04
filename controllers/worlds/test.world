@@ -9,16 +9,17 @@
     <include>
       <uri>model://ground_plane</uri>
     </include>
+    
     <!-- Targets -->
     <model name='target1'>
       <static>true</static>
-      <pose>1.5 1.5 0 0 0 0</pose>
+      <pose>1.5 0.5 0 0 0 0</pose>
       <link name='link'>
         <visual name='visual'>
           <cast_shadows>false</cast_shadows>
           <geometry>
             <box>
-              <size> 1 1 0.05</size>
+              <size> 0.75 0.75 0.05</size>
             </box>
           </geometry>
           <material>
@@ -33,13 +34,13 @@
     </model>
     <model name='target2'>
       <static>true</static>
-      <pose>-1.5 1.5 0 0 0 0</pose>
+      <pose>-2.5 4.5 0 0 0 0</pose>
       <link name='link'>
         <visual name='visual'>
           <cast_shadows>false</cast_shadows>
           <geometry>
             <box>
-              <size> 1 1 0.05</size>
+              <size> 0.75 0.75 0.05</size>
             </box>
           </geometry>
           <material>
@@ -54,13 +55,13 @@
     </model>
     <model name='target3'>
       <static>true</static>
-      <pose>1.5 -1.5 0 0 0 0</pose>
+      <pose>2.5 -3.5 0 0 0 0</pose>
       <link name='link'>
         <visual name='visual'>
           <cast_shadows>false</cast_shadows>
           <geometry>
             <box>
-              <size> 1 1 0.05</size>
+              <size> 0.75 0.75 0.05</size>
             </box>
           </geometry>
           <material>
@@ -75,13 +76,13 @@
     </model>
     <model name='target4'>
       <static>true</static>
-      <pose>-1.5 -1.5 0 0 0 0</pose>
+      <pose>-4.5 -3.5 0 0 0 0</pose>
       <link name='link'>
         <visual name='visual'>
           <cast_shadows>false</cast_shadows>
           <geometry>
             <box>
-              <size> 1 1 0.05</size>
+              <size> 0.75 0.75 0.05</size>
             </box>
           </geometry>
           <material>
@@ -122,7 +123,7 @@
       <enabled>true</enabled>
       <entity>iris::base_link</entity>
       <namespace>target1_contains</namespace>
-      <pose>1.5 1.5 0 0 0 0</pose>
+      <pose>1.5 0.5 0 0 0 0</pose>
       <geometry>
         <box>
           <size>1 1 10</size>
@@ -134,7 +135,7 @@
       <enabled>true</enabled>
       <entity>iris::base_link</entity>
       <namespace>target2_contains</namespace>
-      <pose>-1.5 1.5 0 0 0 0</pose>
+      <pose>-2.5 4.5 0 0 0 0</pose>
       <geometry>
         <box>
           <size>1 1 10</size>
@@ -146,7 +147,7 @@
       <enabled>true</enabled>
       <entity>iris::base_link</entity>
       <namespace>target3_contains</namespace>
-      <pose>1.5 -1.5 0 0 0 0</pose>
+      <pose>2.5 -3.5 0 0 0 0</pose>
       <geometry>
         <box>
           <size>1 1 10</size>
@@ -158,7 +159,7 @@
       <enabled>true</enabled>
       <entity>iris::base_link</entity>
       <namespace>target4_contains</namespace>
-      <pose>-1.5 -1.5 0 0 0 0</pose>
+      <pose>-4.5 -3.5 0 0 0 0</pose>
       <geometry>
         <box>
           <size>1 1 10</size>
@@ -166,5 +167,949 @@
       </geometry>
     </plugin>
 
+    <!-- grass -->
+    <model name="grass">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10 10 0.01</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grass</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name='oak_tree1'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://oak_tree/meshes/oak_tree.dae</uri>
+              <scale>0.158659 0.178659 0.3</scale>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='branch'>
+          <geometry>
+            <mesh>
+              <uri>model://oak_tree/meshes/oak_tree.dae</uri>
+              <submesh>
+                <name>Branch</name>
+              </submesh>
+              <scale>0.158659 0.178659 0.3</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://oak_tree/materials/scripts/</uri>
+              <uri>model://oak_tree/materials/textures/</uri>
+              <name>OakTree/Branch</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='bark'>
+          <geometry>
+            <mesh>
+              <uri>model://oak_tree/meshes/oak_tree.dae</uri>
+              <submesh>
+                <name>Bark</name>
+              </submesh>
+              <scale>0.158659 0.178659 0.3</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://oak_tree/materials/scripts/</uri>
+              <uri>model://oak_tree/materials/textures/</uri>
+              <name>OakTree/Bark</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-3.85 -2 0 0 -0 0</pose>
+    </model>
+    <model name="oak_grass1">
+      <static>true</static>
+      <pose>-4 -2 0.012</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>1.75 1.75 0.01</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grass</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name='oak_tree2'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://oak_tree/meshes/oak_tree.dae</uri>
+              <scale>0.158659 0.178659 0.3</scale>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='branch'>
+          <geometry>
+            <mesh>
+              <uri>model://oak_tree/meshes/oak_tree.dae</uri>
+              <submesh>
+                <name>Branch</name>
+              </submesh>
+              <scale>0.158659 0.178659 0.3</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://oak_tree/materials/scripts/</uri>
+              <uri>model://oak_tree/materials/textures/</uri>
+              <name>OakTree/Branch</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='bark'>
+          <geometry>
+            <mesh>
+              <uri>model://oak_tree/meshes/oak_tree.dae</uri>
+              <submesh>
+                <name>Bark</name>
+              </submesh>
+              <scale>0.158659 0.178659 0.3</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://oak_tree/materials/scripts/</uri>
+              <uri>model://oak_tree/materials/textures/</uri>
+              <name>OakTree/Bark</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>1.15 -3 0 0 -0 0</pose>
+    </model>
+    <model name="oak_grass2">
+      <static>true</static>
+      <pose>1 -3 0.012</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>1.75 1.75 0.01</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grass</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name='Fast Food'>
+      <static>1</static>
+      <link name='link'>
+        <pose frame=''>0 0 0.526551667 0 -0 0</pose>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 0.3333</scale>
+              <uri>model://fast_food/meshes/fast_food.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 0.3333</scale>
+              <uri>model://fast_food/meshes/fast_food.dae</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://fast_food/materials/scripts</uri>
+              <uri>model://fast_food/materials/textures</uri>
+              <name>FastFood/Diffuse</name>
+            </script>
+            <shader type='normal_map_tangent_space'>
+              <normal_map>FastFood_Normal.png</normal_map>
+            </shader>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>2 3.3 0 0 -0 0</pose>
+    </model>
+    <model name='grocery_store'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry>
+            <box>
+<!--               <size>32.1985 17.5425 8.09209</size>-->         
+            <size>3 2 1.2</size>   
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <pose>0 -0.3 0 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://grocery_store/meshes/grocery_store.dae</uri>
+              <scale>0.09 0.09 0.13</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>-3.5 3 0 0 -0 3.14159</pose>
+    </model>
+    <model name='House 1'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://house_3/meshes/house_3.dae</uri>
+              <scale>0.2 0.3 0.2</scale>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://house_3/meshes/house_3.dae</uri>
+              <scale>0.2 0.3 0.2</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://house_3/materials/scripts</uri>
+              <uri>model://house_3/materials/textures</uri>
+              <uri>model://house_1/materials/textures</uri>
+              <name>House_3/Diffuse</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>3.5 -1.15 0 0 -0 -1.5708</pose>
+    </model>
+    <model name='House 3'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://house_3/meshes/house_3.dae</uri>
+              <scale>0.2 0.3 0.2</scale>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://house_3/meshes/house_3.dae</uri>
+              <scale>0.2 0.3 0.2</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://house_3/materials/scripts</uri>
+              <uri>model://house_3/materials/textures</uri>
+              <uri>model://house_1/materials/textures</uri>
+              <name>House_3/Diffuse</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>-2.15 -2.5 0 0 -0 3.14159</pose>
+    </model>
+    <model name='telephone_pole1'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision_pole'>
+          <pose frame=''>0 0 1.125 0 -0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.02</radius>
+              <length>2.5</length>
+            </cylinder>
+          </geometry>
+
+        </collision>
+        <collision name='collision_cross'>
+          <pose frame=''>0 -0.028806 2 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.011763 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://telephone_pole/meshes/telephone_pole.dae</uri>
+              <scale>0.25 0.25 0.25</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>-2.5 -4.5 0 0 -0 0</pose>
+    </model>
+    <model name='telephone_pole2'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision_pole'>
+          <pose frame=''>0 0 1.125 0 -0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.02</radius>
+              <length>2.5</length>
+            </cylinder>
+          </geometry>
+
+        </collision>
+        <collision name='collision_cross'>
+          <pose frame=''>0 -0.028806 2 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.011763 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://telephone_pole/meshes/telephone_pole.dae</uri>
+              <scale>0.25 0.25 0.25</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>4.5 -3.5 0 0 -0 1.5708</pose>
+    </model>
+    <model name='Lamp Post'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://lamp_post/meshes/lamp_post.dae</uri>
+              <scale>0.6 0.6 0.6</scale>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://lamp_post/meshes/lamp_post.dae</uri>
+              <scale>0.6 0.6 0.6</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>3.7 0.5 0 0 0 -1.5708</pose>
+    </model>
+    <model name='law_office'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <pose frame=''>0 0 0.8354928 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.8212812 0.651798 1.670988</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://law_office/meshes/law_office.dae</uri>
+            <scale>0.12 0.12 0.12</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose frame=''>-1.5 0.5 0 0 -0 0</pose>
+    </model>
+    <!-- Road grid -->
+    <model name="road1">
+      <static>1</static>
+      <pose>0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road2">
+      <static>1</static>
+      <pose>0 1 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road3">
+      <static>1</static>
+      <pose>0 2 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road4">
+      <static>1</static>
+      <pose>0 3 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road5">
+      <static>1</static>
+      <pose>0 4 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road6">
+      <static>1</static>
+      <pose>0 5 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_-2">
+      <static>1</static>
+      <pose>0 -1 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_-3">
+      <static>1</static>
+      <pose>0 -2 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_-4">
+      <static>1</static>
+      <pose>0 -3 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_-5">
+      <static>1</static>
+      <pose>0 -4 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_-6">
+      <static>1</static>
+      <pose>0 -5 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y1">
+      <static>1</static>
+      <pose>0 0 0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y2">
+      <static>1</static>
+      <pose>1 0 0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y3">
+      <static>1</static>
+      <pose>2 0 0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y4">
+      <static>1</static>
+      <pose>3 0 0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y5">
+      <static>1</static>
+      <pose>4 0 0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y6">
+      <static>1</static>
+      <pose>5 0 0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y_-2">
+      <static>1</static>
+      <pose>-1 0  0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y_-3">
+      <static>1</static>
+      <pose>-2 0  0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y_-4">
+      <static>1</static>
+      <pose>-3 0  0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y_-5">
+      <static>1</static>
+      <pose>-4 0  0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
+    <model name="road_y_-6">
+      <static>1</static>
+      <pose>-5 0  0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="visual">
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>10 0.25 0.02</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Motorway</name>
+            </script>
+          </material>
+
+        </visual>
+      </link>
+    </model>
   </world>
 </sdf>
