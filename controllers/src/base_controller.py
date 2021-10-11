@@ -5,6 +5,8 @@ import rospy
 import tf
 import math
 import random
+import csv
+import json
 
 # 3D point & Stamped Pose msgs
 from geometry_msgs.msg import Point, Vector3, PoseStamped, PolygonStamped
@@ -91,13 +93,56 @@ class OffboardControl(object):
         self.target_reached = True
         self.coords_index = -1
         self.script_ctl = False
-        self.x_coords = []
-        self.y_coords = []
-        with open('/home/undergrad/catkin_ws/src/PX4_advanced_control/controllers/src/points.txt') as f:
-            for l in f:
-                row = l.split()
-                self.x_coords.append(float(row[0]))
-                self.y_coords.append(float(row[1]))
+        # Data structure: dict of dict of list
+        # {
+        #     source_target:
+        #         {
+        #            dest_target:
+        #               {
+        #                   x: 
+        #                       {
+        #                           y: [left, right, up, down]
+        #                       }
+        #               }
+        #         }
+        # }
+        self.policy_dict = dict()
+        for source in range(1,5):
+            self.policy_dict[source] = dict()
+            for dest in range(1,5):
+                self.policy_dict[source][dest] = dict()
+                try:
+                    with open('/home/undergrad/catkin_ws/src/PX4_advanced_control/controllers/src/{}_to_{}.csv'.format(source, dest), 'r') as f:
+                        reader = csv.reader(f)
+                        for row in reader:
+                            # Extract coordinates
+                            x_coord = float(row[0].strip("[]").split()[0])
+                            y_coord = float(row[0].strip("[]").split()[1])                
+                            # Extract probabilities
+                            raw_probs = [float(x) for x in row[1].strip("[]").split()]
+                            prob_values = list()
+                            for probability in raw_probs:
+                                if probability < 0.01:
+                                    prob_values.append(0)
+                                else:
+                                    prob_values.append(probability)
+                            normalized_prob_values = [prob/sum(prob_values) for prob in prob_values]
+                            # Insert into dictionary
+                            if x_coord not in self.policy_dict[source][dest].keys():
+                                self.policy_dict[source][dest][x_coord] = dict()
+                            self.policy_dict[source][dest][x_coord][y_coord] = normalized_prob_values
+                except:
+                    pass
+        # destination targets
+        # 1 - (-4.5, -3.5)
+        # 2 - (2.5, -3.5)
+        # 3 - (1.5, 0.5)
+        # 4 - (-2.5, 4.5)
+        # TODO: Implement destination switching
+        self.current_dest = -1
+        self.current_src = -1
+        # rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
+
 
     def update(self):
         """ Heartbeat of drone """
@@ -363,23 +408,61 @@ class OffboardControl(object):
     def state_callback(self, msg):
         self.state = msg
 
-    def check_target_reached(self, epsilon=0.05):
+    def check_target_reached(self, epsilon=0.1):
         return ((abs(self.curr_position.x - self.setpoint_target.position.x) < epsilon) and \
                 (abs(self.curr_position.y - self.setpoint_target.position.y) < epsilon) and \
                 (abs(self.curr_position.z - self.setpoint_target.position.z) < epsilon))
 
+    def check_destination_reached(self, epsilon=0.1):
+        if self.current_dest == 1:
+            return (abs(self.setpoint_target.position.x + 4.5) < epsilon) and \
+                   (abs(self.setpoint_target.position.y + 3.5) < epsilon)
+        if self.current_dest == 2:
+            return (abs(self.setpoint_target.position.x - 2.5) < epsilon) and \
+                   (abs(self.setpoint_target.position.y + 3.5) < epsilon)
+        if self.current_dest == 3:
+            return (abs(self.setpoint_target.position.x - 1.5) < epsilon) and \
+                   (abs(self.setpoint_target.position.y - 0.5) < epsilon)
+        if self.current_dest == 4:
+            return (abs(self.setpoint_target.position.x + 2.5) < epsilon) and \
+                   (abs(self.setpoint_target.position.y - 4.5) < epsilon)
+        return False
+
     def next_point(self):
-        self.coords_index = (self.coords_index + 1)
-        if self.coords_index < len(self.x_coords):
-            x = self.x_coords[self.coords_index]
-            y = self.y_coords[self.coords_index]
-            self.move(x, y, 1.2)
+        # Assumes that setpoint_target is the current position has been reached
+        # Get probability values list [left, right, up, down] based on current state
+        prob_values = self.policy_dict[self.current_src][self.current_dest][self.setpoint_target.position.x][self.setpoint_target.position.y]
+        left = prob_values[0]
+        right = prob_values[1]
+        up = prob_values[2]        
+        new_x = self.setpoint_target.position.x
+        new_y = self.setpoint_target.position.y
+        # Generate random value
+        rand_float = random.uniform(0, 1)
+        if rand_float < left:
+            new_x -= 1
+        elif rand_float < right:
+            new_x += 1
+        elif rand_float < up:
+            new_y += 1
+        else: # move down
+            new_y -= 1
+        # Ensure new point is not out of bounds
+        new_point = Point(new_x, new_y, self.setpoint_target.position.z)
+        if self.is_point_in_cube(new_point, self.posCubeCorner1, self.posCubeCorner2):
+            self.move(new_x, new_y, self.setpoint_target.position.z)
+        else:
+            # Remain in current state if new point is out of bounds
+            pass
+        
 
     def start_script(self):
         rospy.loginfo("Starting scripted control. Enter any command (valid or invalid) "
                       "into command line to stop script and switch to command line control")
         self.target_reached = True
         self.script_ctl = True
+        self.current_dest = 2
+        self.current_src = 1
 
     def setTakeoff(self, height=1.5):
         self.setArm()
