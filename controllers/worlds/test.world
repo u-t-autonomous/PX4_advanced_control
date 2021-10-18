@@ -23,8 +23,8 @@
             </box>
           </geometry>
           <material>
-            <emissive>1 0 0 1</emissive>
-            <diffuse>1 0 0 1</diffuse>
+            <emissive>1 1 1 1</emissive>
+            <diffuse>1 1 1 1</diffuse>
           </material>
           <plugin name="visualChange1" filename="libChangeTargetVisual.so">
             <contains_topic>target1_contains/contain</contains_topic>
@@ -44,8 +44,8 @@
             </box>
           </geometry>
           <material>
-            <emissive>1 0 0 1</emissive>
-            <diffuse>1 0 0 1</diffuse>
+            <emissive>1 1 1 1</emissive>
+            <diffuse>1 1 1 1</diffuse>
           </material>
           <plugin name="visualChange2" filename="libChangeTargetVisual.so">
             <contains_topic>target2_contains/contain</contains_topic>
@@ -65,8 +65,8 @@
             </box>
           </geometry>
           <material>
-            <emissive>1 0 0 1</emissive>
-            <diffuse>1 0 0 1</diffuse>
+            <emissive>1 1 1 1</emissive>
+            <diffuse>1 1 1 1</diffuse>
           </material>
           <plugin name="visualChange3" filename="libChangeTargetVisual.so">
             <contains_topic>target3_contains/contain</contains_topic>
@@ -86,8 +86,8 @@
             </box>
           </geometry>
           <material>
-            <emissive>1 0 0 1</emissive>
-            <diffuse>1 0 0 1</diffuse>
+            <emissive>1 1 1 1</emissive>
+            <diffuse>1 1 1 1</diffuse>
           </material>
           <plugin name="visualChange4" filename="libChangeTargetVisual.so">
             <contains_topic>target4_contains/contain</contains_topic>
@@ -624,7 +624,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>-1.5 0.5 0 0 -0 0</pose>
+      <pose frame=''>-2.5 0.5 0 0 -0 0</pose>
     </model>
     <!-- Road grid -->
     <model name="road1">

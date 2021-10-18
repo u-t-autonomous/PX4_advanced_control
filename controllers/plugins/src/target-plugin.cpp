@@ -37,7 +37,7 @@ namespace gazebo
         void OnContainPluginMsg(const ignition::msgs::Boolean &_msg)
         {
             common::Color green(0, 1, 0);
-            common::Color red(1, 0, 0);
+            common::Color white(1, 1, 1);
             if (_msg.data())
             {
                 this->model->SetDiffuse(green);
@@ -45,8 +45,8 @@ namespace gazebo
             }
             else
             {
-                this->model->SetDiffuse(red);
-                this->model->SetEmissive(red);
+                this->model->SetDiffuse(white);
+                this->model->SetEmissive(white);
             }
         }
 

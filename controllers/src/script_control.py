@@ -67,8 +67,7 @@ def main():
 
     while not rospy.is_shutdown():
         offboard_controller.update()
-        if offboard_controller.script_ctl and offboard_controller.target_reached \
-            and not offboard_controller.check_destination_reached():
+        if offboard_controller.script_ctl and offboard_controller.target_reached:
             offboard_controller.next_point()
         rate.sleep()
 

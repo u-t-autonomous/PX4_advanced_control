@@ -15,6 +15,7 @@ from geometry_msgs.msg import Point, Vector3, PoseStamped, PolygonStamped
 from mavros_msgs.msg import *
 from mavros_msgs.srv import *
 
+CATKIN_WS = '/home/undergrad/catkin_ws/src/'
 
 # Class that can be used for any sort of offboard control
 class OffboardControl(object):
@@ -112,12 +113,12 @@ class OffboardControl(object):
             for dest in range(1,5):
                 self.policy_dict[source][dest] = dict()
                 try:
-                    with open('/home/undergrad/catkin_ws/src/PX4_advanced_control/controllers/src/{}_to_{}.csv'.format(source, dest), 'r') as f:
+                    with open(CATKIN_WS + 'PX4_advanced_control/controllers/src/target_pairs/{}_to_{}.csv'.format(source, dest), 'r') as f:
                         reader = csv.reader(f)
                         for row in reader:
                             # Extract coordinates
-                            x_coord = float(row[0].strip("[]").split()[0])
-                            y_coord = float(row[0].strip("[]").split()[1])                
+                            x_coord = (row[0].strip("[]").split()[0])
+                            y_coord = (row[0].strip("[]").split()[1])                
                             # Extract probabilities
                             raw_probs = [float(x) for x in row[1].strip("[]").split()]
                             prob_values = list()
@@ -138,10 +139,9 @@ class OffboardControl(object):
         # 2 - (2.5, -3.5)
         # 3 - (1.5, 0.5)
         # 4 - (-2.5, 4.5)
-        # TODO: Implement destination switching
         self.current_dest = -1
         self.current_src = -1
-        # rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
+        rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
 
 
     def update(self):
@@ -161,8 +161,8 @@ class OffboardControl(object):
 
     def move(self, x, y, z, rate=False):
         """ Gives position or velocity commands to drone"""
-        if rate==False:
-            rospy.loginfo("Moving to point {:.3f} {:.3f} {:.3f}".format(x, y, z))
+        if rate == False:
+            rospy.logdebug("Target: {} {} {}".format(x, y, z))
         self.is_posctl = True # This is definitely posctl -> so update the variable
         self.target_reached = False
         # If this is velocity control change the type mask
@@ -380,11 +380,6 @@ class OffboardControl(object):
         self.curr_orientation.z = euler[2]#yaw
         if self.is_posctl and not self.target_reached:
             self.target_reached = self.check_target_reached()
-            if self.target_reached:
-                rospy.loginfo("Target {:.3f} {:.3f} {:.3f} reached!".format(
-                                self.setpoint_target.position.x,
-                                self.setpoint_target.position.y,
-                                self.setpoint_target.position.z))
 
     def estimate_callback(self, msg):
         euler = tf.transformations.euler_from_quaternion((msg.pose.orientation.x,
@@ -410,10 +405,9 @@ class OffboardControl(object):
 
     def check_target_reached(self, epsilon=0.1):
         return ((abs(self.curr_position.x - self.setpoint_target.position.x) < epsilon) and \
-                (abs(self.curr_position.y - self.setpoint_target.position.y) < epsilon) and \
-                (abs(self.curr_position.z - self.setpoint_target.position.z) < epsilon))
+                (abs(self.curr_position.y - self.setpoint_target.position.y) < epsilon))
 
-    def check_destination_reached(self, epsilon=0.1):
+    def check_destination_reached(self, epsilon=0.05):
         if self.current_dest == 1:
             return (abs(self.setpoint_target.position.x + 4.5) < epsilon) and \
                    (abs(self.setpoint_target.position.y + 3.5) < epsilon)
@@ -428,41 +422,89 @@ class OffboardControl(object):
                    (abs(self.setpoint_target.position.y - 4.5) < epsilon)
         return False
 
+    def set_current_src(self, epsilon=0.2):
+        if (abs(self.curr_position.x + 4.5) < epsilon) and \
+           (abs(self.curr_position.y + 3.5) < epsilon):
+            self.current_src = 1
+            return True
+        if (abs(self.curr_position.x - 2.5) < epsilon) and \
+           (abs(self.curr_position.y + 3.5) < epsilon):
+            self.current_src = 2
+            return True
+        if (abs(self.curr_position.x - 1.5) < epsilon) and \
+           (abs(self.curr_position.y - 0.5) < epsilon):
+            self.current_src = 3
+            return True
+        if (abs(self.curr_position.x + 2.5) < epsilon) and \
+           (abs(self.curr_position.y - 4.5) < epsilon):
+            self.current_src = 4
+            return True
+        return False
+
+    def set_new_dest(self):
+        while (self.current_dest == self.current_src) or (self.current_dest == -1):
+            self.current_dest = random.randint(1,4)
+        new_x = 0
+        new_y = 0
+        # destination targets
+        # 1 - (-4.5, -3.5)
+        # 2 - (2.5, -3.5)
+        # 3 - (1.5, 0.5)
+        # 4 - (-2.5, 4.5)
+        if self.current_dest == 1:
+            new_x = -4.5
+            new_y = -3.5
+        elif self.current_dest == 2:
+            new_x = 2.5
+            new_y = -3.5
+        elif self.current_dest == 3:
+            new_x = 1.5
+            new_y = 0.5
+        else:
+            new_x = -2.5
+            new_y = 4.5
+        rospy.loginfo("New destination: ({}, {})".format(new_x, new_y))
+
     def next_point(self):
         # Assumes that setpoint_target is the current position has been reached
         # Get probability values list [left, right, up, down] based on current state
-        prob_values = self.policy_dict[self.current_src][self.current_dest][self.setpoint_target.position.x][self.setpoint_target.position.y]
+        if self.check_destination_reached():
+            self.current_src = self.current_dest
+            self.set_new_dest()
+        prob_values = self.policy_dict[self.current_src][self.current_dest][str(self.setpoint_target.position.x)][str(self.setpoint_target.position.y)]
         left = prob_values[0]
         right = prob_values[1]
-        up = prob_values[2]        
+        up = prob_values[2]
         new_x = self.setpoint_target.position.x
         new_y = self.setpoint_target.position.y
         # Generate random value
         rand_float = random.uniform(0, 1)
+        rospy.loginfo(prob_values)
+        rospy.loginfo(rand_float)
         if rand_float < left:
             new_x -= 1
-        elif rand_float < right:
+        elif rand_float < right + left:
             new_x += 1
-        elif rand_float < up:
+        elif rand_float < up + right + left:
             new_y += 1
         else: # move down
             new_y -= 1
         # Ensure new point is not out of bounds
         new_point = Point(new_x, new_y, self.setpoint_target.position.z)
+        # Only move to new point if in bounds, otherwise do nothing
         if self.is_point_in_cube(new_point, self.posCubeCorner1, self.posCubeCorner2):
             self.move(new_x, new_y, self.setpoint_target.position.z)
-        else:
-            # Remain in current state if new point is out of bounds
-            pass
-        
+
 
     def start_script(self):
-        rospy.loginfo("Starting scripted control. Enter any command (valid or invalid) "
-                      "into command line to stop script and switch to command line control")
-        self.target_reached = True
-        self.script_ctl = True
-        self.current_dest = 2
-        self.current_src = 1
+        if self.set_current_src():
+            self.set_new_dest()
+            rospy.loginfo("Starting scripted control. Enter any command (valid or invalid) "
+                          "into command line to stop script and switch to command line control")
+            self.target_reached = True
+            self.script_ctl = True
+        else:
+            rospy.logerr("Failed to start script control. Must start script control on a target")
 
     def setTakeoff(self, height=1.5):
         self.setArm()
