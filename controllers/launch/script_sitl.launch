@@ -1,7 +1,7 @@
 <launch>
   <!-- launch Gazebo, ROS, Mavros, etc -->
   <node name="sim_env_setup" pkg="controllers" type="sim_env_setup.sh"/>
-
+  <node name="drone_path_rviz" pkg="rviz" type="rviz" args="-d $(find controllers)/src/experiment.rviz"/>
   <!-- launch custom node -->
   <node name="script_control" pkg="controllers" type="script_control.py" output="screen" launch-prefix="gnome-terminal --">
   	<rosparam param="safe_cube_corner_1">[-5, -5, -0.5]</rosparam>

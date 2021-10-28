@@ -10,6 +10,8 @@ import json
 
 # 3D point & Stamped Pose msgs
 from geometry_msgs.msg import Point, Vector3, PoseStamped, PolygonStamped
+from nav_msgs.msg import Path
+from visualization_msgs.msg import Marker, MarkerArray
 
 # import all mavros messages and services
 from mavros_msgs.msg import *
@@ -20,7 +22,110 @@ CATKIN_WS = '/home/undergrad/catkin_ws/src/'
 # Class that can be used for any sort of offboard control
 class OffboardControl(object):
     def __init__(self, hoverVal=0.5, updateTime=0.01):
+        self.target_locations = {
+            1: {
+                'x': -4.5,
+                'y': -3.5
+            },
+            2: {
+                'x': 2.5,
+                'y': -3.5
+            },
+            3: {
+                'x': 1.5,
+                'y': 0.5
+            },
+            4: {
+                'x': -2.5,
+                'y': 4.5
+            }
+        }
+        self.obstacle_locations = [
+            (-4.5, 3.5),
+            (-4.5, 2.5),
+            (-4.5, -1.5),
+            (-4.5, -2.5),
+            (-3.5, 3.5),
+            (-3.5, 2.5),
+            (-3.5, -1.5),
+            (-3.5, -2.5),
+            (-2.5, 3.5),
+            (-2.5, 2.5),
+            (-2.5, 0.5),
+            (-2.5, -4.5),
+            (-1.5, -2.5),
+            (0.5, 4.5),
+            (0.5, 3.5),
+            (0.5, 2.5),
+            (0.5, -2.5),
+            (0.5, -3.5),
+            (1.5, 4.5),
+            (1.5, 3.5),
+            (1.5, 2.5),
+            (1.5, -2.5),
+            (1.5, -3.5),
+            (2.5, 4.5),
+            (2.5, 3.5),
+            (2.5, 2.5),
+            (3.5, 4.5),
+            (3.5, 3.5),
+            (3.5, 2.5),
+            (3.5, 0.5),
+            (3.5, -0.5),
+            (4.5, -3.5)
+        ]
+        self.target_markers = MarkerArray()
+        for target in self.target_locations.keys():
+            marker = Marker()
+            marker.header.frame_id = "map"
+            marker.id = target
+            marker.type = marker.CUBE
+            marker.action = marker.ADD
+            marker.pose.position.x = self.target_locations[target]['x']
+            marker.pose.position.y = self.target_locations[target]['y']
+            marker.pose.position.z = 1.0
+            marker.pose.orientation.w = 1.0
+            marker.scale.x = 1
+            marker.scale.y = 1
+            marker.scale.z = 0.1
+            marker.color.a = 0.1
+            marker.color.r = 0.0
+            marker.color.g = 1.0
+            marker.color.b = 0.0
+            self.target_markers.markers.append(marker)
+        self.obstacle_markers = MarkerArray()
+        id = 1 + len(self.target_locations.keys())
+        for obstacle in self.obstacle_locations:
+            marker = Marker()
+            marker.header.frame_id = "map"
+            marker.id = id
+            marker.type = marker.CUBE
+            marker.action = marker.ADD
+            marker.pose.position.x = obstacle[0]
+            marker.pose.position.y = obstacle[1]
+            marker.pose.position.z = 1.0
+            marker.pose.orientation.w = 1.0
+            marker.scale.x = 1
+            marker.scale.y = 1
+            marker.scale.z = 0.1
+            marker.color.a = 1.0
+            marker.color.r = 1.0
+            marker.color.g = 0.0
+            marker.color.b = 0.0
+            self.obstacle_markers.markers.append(marker)
+            id += 1
+        # self.target_cells = GridCells()
+        # self.target_cells.header.frame_id = 'map'
+        # self.target_cells.cell_width = 1;
+        # self.target_cells.cell_height = 1;
+        # for target_num in self.target_locations.keys():
+        #     target = Point()
+        #     target.x = self.target_locations[target_num]['x']
+        #     target.y = self.target_locations[target_num]['y']
+        #     target.z = 0
+        #     self.target_cells.cells.append(target)
 
+        
         # To uncomment if euler angle from Vicon are required
         # Vicon estimation euler angles
         # Current euler angle (rad) from vicon estimate x<->roll, y<->pitch, z<->yaw
@@ -112,7 +217,7 @@ class OffboardControl(object):
             self.policy_dict[source] = dict()
             for dest in range(1,5):
                 self.policy_dict[source][dest] = dict()
-                try:
+                if dest != source:
                     with open(CATKIN_WS + 'PX4_advanced_control/controllers/src/target_pairs/{}_to_{}.csv'.format(source, dest), 'r') as f:
                         reader = csv.reader(f)
                         for row in reader:
@@ -132,8 +237,6 @@ class OffboardControl(object):
                             if x_coord not in self.policy_dict[source][dest].keys():
                                 self.policy_dict[source][dest][x_coord] = dict()
                             self.policy_dict[source][dest][x_coord][y_coord] = normalized_prob_values
-                except:
-                    pass
         # destination targets
         # 1 - (-4.5, -3.5)
         # 2 - (2.5, -3.5)
@@ -141,8 +244,12 @@ class OffboardControl(object):
         # 4 - (-2.5, 4.5)
         self.current_dest = -1
         self.current_src = -1
-        rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
-
+        # rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
+        self.pos_history = Path()
+        self.pos_history.header.frame_id = 'map'
+        self.pos_hist_pub = rospy.Publisher('drone_path', Path, queue_size=5)
+        self.marker_pub = rospy.Publisher('markers', MarkerArray, queue_size=5)
+        self.pos_num = 0
 
     def update(self):
         """ Heartbeat of drone """
@@ -370,7 +477,6 @@ class OffboardControl(object):
         self.curr_position.x = msg.pose.position.x
         self.curr_position.y = msg.pose.position.y
         self.curr_position.z = msg.pose.position.z
-
         euler = tf.transformations.euler_from_quaternion((msg.pose.orientation.x,
                                                           msg.pose.orientation.y,
                                                           msg.pose.orientation.z,
@@ -378,8 +484,20 @@ class OffboardControl(object):
         self.curr_orientation.x = euler[0]#roll
         self.curr_orientation.y = euler[1]#pitch
         self.curr_orientation.z = euler[2]#yaw
+        # Add point to pose history
+        if self.script_ctl == True and self.pos_num == 0:
+            new_pose = PoseStamped()
+            new_pose.pose.position.x = msg.pose.position.x
+            new_pose.pose.position.y = msg.pose.position.y
+            new_pose.pose.position.z = msg.pose.position.z
+            self.pos_history.poses.append(new_pose)
+            self.pos_history.header.seq += 1
+            self.pos_history.header.stamp = rospy.Time.now()
+            self.pos_hist_pub.publish(self.pos_history)
         if self.is_posctl and not self.target_reached:
             self.target_reached = self.check_target_reached()
+        self.pos_num = (self.pos_num + 1) % 6
+
 
     def estimate_callback(self, msg):
         euler = tf.transformations.euler_from_quaternion((msg.pose.orientation.x,
@@ -403,7 +521,7 @@ class OffboardControl(object):
     def state_callback(self, msg):
         self.state = msg
 
-    def check_target_reached(self, epsilon=0.1):
+    def check_target_reached(self, epsilon=0.15):
         return ((abs(self.curr_position.x - self.setpoint_target.position.x) < epsilon) and \
                 (abs(self.curr_position.y - self.setpoint_target.position.y) < epsilon))
 
@@ -442,28 +560,51 @@ class OffboardControl(object):
         return False
 
     def set_new_dest(self):
+        modify_markers = MarkerArray()
+        # Make old marker transparent
+        if self.current_dest > 0:
+            marker = Marker()
+            marker.header.frame_id = "map"
+            marker.id = self.current_dest
+            marker.type = marker.CUBE
+            marker.action = marker.MODIFY
+            marker.pose.position.x = self.target_locations[self.current_dest]['x']
+            marker.pose.position.y = self.target_locations[self.current_dest]['y']
+            marker.pose.position.z = 1.0
+            marker.pose.orientation.w = 1.0
+            marker.scale.x = 1
+            marker.scale.y = 1
+            marker.scale.z = 0.1
+            marker.color.a = 0.1
+            marker.color.r = 0.0
+            marker.color.g = 1.0
+            marker.color.b = 0.0
+            modify_markers.markers.append(marker)
+        # set new destination
         while (self.current_dest == self.current_src) or (self.current_dest == -1):
             self.current_dest = random.randint(1,4)
-        new_x = 0
-        new_y = 0
-        # destination targets
-        # 1 - (-4.5, -3.5)
-        # 2 - (2.5, -3.5)
-        # 3 - (1.5, 0.5)
-        # 4 - (-2.5, 4.5)
-        if self.current_dest == 1:
-            new_x = -4.5
-            new_y = -3.5
-        elif self.current_dest == 2:
-            new_x = 2.5
-            new_y = -3.5
-        elif self.current_dest == 3:
-            new_x = 1.5
-            new_y = 0.5
-        else:
-            new_x = -2.5
-            new_y = 4.5
+        new_x = self.target_locations[self.current_dest]['x']
+        new_y = self.target_locations[self.current_dest]['y']
         rospy.loginfo("New destination: ({}, {})".format(new_x, new_y))
+        # Make new marker not transparent
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.id = self.current_dest
+        marker.type = marker.CUBE
+        marker.action = marker.MODIFY
+        marker.pose.position.x = self.target_locations[self.current_dest]['x']
+        marker.pose.position.y = self.target_locations[self.current_dest]['y']
+        marker.pose.position.z = 1.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 1
+        marker.scale.y = 1
+        marker.scale.z = 0.1
+        marker.color.a = 1.0
+        marker.color.r = 0.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
+        modify_markers.markers.append(marker)
+        self.marker_pub.publish(modify_markers)
 
     def next_point(self):
         # Assumes that setpoint_target is the current position has been reached
@@ -479,8 +620,8 @@ class OffboardControl(object):
         new_y = self.setpoint_target.position.y
         # Generate random value
         rand_float = random.uniform(0, 1)
-        rospy.loginfo(prob_values)
-        rospy.loginfo(rand_float)
+        # rospy.loginfo(prob_values)
+        # rospy.loginfo(rand_float)
         if rand_float < left:
             new_x -= 1
         elif rand_float < right + left:
@@ -495,12 +636,13 @@ class OffboardControl(object):
         if self.is_point_in_cube(new_point, self.posCubeCorner1, self.posCubeCorner2):
             self.move(new_x, new_y, self.setpoint_target.position.z)
 
-
     def start_script(self):
         if self.set_current_src():
-            self.set_new_dest()
             rospy.loginfo("Starting scripted control. Enter any command (valid or invalid) "
                           "into command line to stop script and switch to command line control")
+            self.marker_pub.publish(self.target_markers)
+            self.marker_pub.publish(self.obstacle_markers)
+            self.set_new_dest()
             self.target_reached = True
             self.script_ctl = True
         else:
