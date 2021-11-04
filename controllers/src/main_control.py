@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import sys
 import threading 
@@ -23,6 +23,7 @@ from advanced_controller import AdvancedController
 
 
 def main():
+
     rospy.init_node('cmd_line_control', anonymous=True)
     updateFreq = 100
     rate = rospy.Rate(updateFreq)

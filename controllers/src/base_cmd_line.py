@@ -86,7 +86,7 @@ class CommandLine(object):
     def get_command_from_console(self):
         while not rospy.is_shutdown():
             try:
-                val = raw_input().split(' ')
+                val = input().split(' ')
 
                 self.process_command(val)
 
