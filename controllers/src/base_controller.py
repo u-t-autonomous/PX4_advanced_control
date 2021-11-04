@@ -129,19 +129,14 @@ class OffboardControl(object):
                                     prob_values.append(probability)
                             normalized_prob_values = [prob/sum(prob_values) for prob in prob_values]
                             # Insert into dictionary
-                            if x_coord not in self.policy_dict[source][dest].keys():
+                            if x_coord not in list(self.policy_dict[source][dest].keys()):
                                 self.policy_dict[source][dest][x_coord] = dict()
                             self.policy_dict[source][dest][x_coord][y_coord] = normalized_prob_values
                 except:
                     pass
-        # destination targets
-        # 1 - (-4.5, -3.5)
-        # 2 - (2.5, -3.5)
-        # 3 - (1.5, 0.5)
-        # 4 - (-2.5, 4.5)
         self.current_dest = -1
         self.current_src = -1
-        rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
+        # rospy.loginfo(json.dumps(self.policy_dict, indent=4, sort_keys=True))
 
 
     def update(self):
