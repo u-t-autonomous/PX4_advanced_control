@@ -218,7 +218,7 @@ class OffboardControl(object):
             for dest in range(1,5):
                 self.policy_dict[source][dest] = dict()
                 if dest != source:
-                    with open(CATKIN_WS + 'PX4_advanced_control/controllers/src/target_pairs/{}_to_{}.csv'.format(source, dest), 'r') as f:
+                    with open(CATKIN_WS + 'harrison/controllers/src/target_pairs/{}_to_{}.csv'.format(source, dest), 'r') as f:
                         reader = csv.reader(f)
                         for row in reader:
                             # Extract coordinates
@@ -295,6 +295,7 @@ class OffboardControl(object):
                 self.setpoint_target.type_mask | int('000000111000',2) # Ignore Vx,Vy,Vz values
             self.setpoint_target.type_mask =  \
                 self.setpoint_target.type_mask & int('111111111000',2) # Activate x, y, z values
+            self.setpoint_target.type_mask |= self.setpoint_target.IGNORE_YAW
             self.setpoint_target.coordinate_frame = 1
             self.setpoint_target.position = Point(x,y,z)
             self.setpoint_target.header.stamp = rospy.Time.now()
@@ -663,7 +664,7 @@ class OffboardControl(object):
 
     def setArm(self):
         try:
-            rospy.wait_for_service('mavros/cmd/arming', 0.5)
+            rospy.wait_for_service('mavros/cmd/arming', 1.5)
             armService = rospy.ServiceProxy('mavros/cmd/arming', mavros_msgs.srv.CommandBool)
             armService(True)
         except rospy.ServiceException as e:
@@ -679,7 +680,7 @@ class OffboardControl(object):
 
     def setOffboardMode(self):
         try:
-            rospy.wait_for_service('mavros/set_mode', 0.5)
+            rospy.wait_for_service('mavros/set_mode', 1.5)
             flightModeService = rospy.ServiceProxy('mavros/set_mode', mavros_msgs.srv.SetMode)
             flightModeService(custom_mode='OFFBOARD')
         except rospy.ServiceException as e:

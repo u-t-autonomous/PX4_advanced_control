@@ -1,7 +1,7 @@
 <launch>
 	<!-- launch command line control for drone -->
-	<node name="drone_path_rviz" pkg="rviz" type="rviz" args="-d $(find controllers)/src/experiment.rviz"/>
-	<node name="main_control" pkg="controllers" type="script_control.py" output="screen">
+	<node name="drone_path_rviz" pkg="rviz" type="rviz" args="-d $(find harrison)/src/experiment.rviz"/>
+	<node name="main_control" pkg="harrison" type="script_control.py" output="screen">
 		<rosparam param="safe_point">[0, 0, 1.5] </rosparam>
 		<rosparam param="safe_cube_corner_1"> [-2.5, -2.5, -0.5] </rosparam>
 		<rosparam param="safe_cube_corner_2"> [2.5, 2.5, 2.5] </rosparam>
