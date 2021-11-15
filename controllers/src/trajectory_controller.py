@@ -13,9 +13,9 @@ from trajectory_msgs.msg import MultiDOFJointTrajectory, MultiDOFJointTrajectory
 
 MIN_Z = 0.8
 MAX_Z = 2.0
-MAX_VEL = 1.0
-MAX_ACC = 2.0
-MAX_JERK = 2.0
+MAX_VEL = 0.2
+MAX_ACC = 1.0
+MAX_JERK = 1.0
 MAX_ANG_VEL = np.pi / 8
 
 
@@ -150,50 +150,50 @@ class TrajectoryController(object):
         new_start_time = msg.start_time.to_sec()
         new_knots = msg.knots
 
-        if self.pos_bspline is not None:
-            # Bspline smoothing
-            knot_t = new_knots[1] - new_knots[0]
-            num_eval_in_1st_part = 20
-            num_eval_in_2nd_part = 50
-            num_1st_part_knots = 1
+        # if self.pos_bspline is not None:
+        #     # Bspline smoothing
+        #     knot_t = new_knots[1] - new_knots[0]
+        #     num_eval_in_1st_part = 20
+        #     num_eval_in_2nd_part = 50
+        #     num_1st_part_knots = 1
 
-            # pos and vel from prev bspline in 1st knot
-            t_1st_part = np.linspace(new_knots[3], new_knots[3 + num_1st_part_knots],
-                                     num_eval_in_1st_part, endpoint=False)
-            t_1st_part_relative = t_1st_part + new_start_time - self.start_time
-            pos_1st_part = self.pos_bspline(t_1st_part_relative)
-            vel_1st_part = self.vel_bspline(t_1st_part_relative)
-            acc_1st_part = self.acc_bspline(t_1st_part_relative)
+        #     # pos and vel from prev bspline in 1st knot
+        #     t_1st_part = np.linspace(new_knots[3], new_knots[3 + num_1st_part_knots],
+        #                              num_eval_in_1st_part, endpoint=False)
+        #     t_1st_part_relative = t_1st_part + new_start_time - self.bspline_start_time
+        #     pos_1st_part = self.pos_bspline(t_1st_part_relative)
+        #     vel_1st_part = self.vel_bspline(t_1st_part_relative)
+        #     acc_1st_part = self.acc_bspline(t_1st_part_relative)
 
-            t_2nd_part = np.linspace(new_knots[3 + num_1st_part_knots], new_knots[-4],
-                                     num_eval_in_2nd_part, endpoint=False)
-            pos_2nd_part = new_pos(t_2nd_part)
-            vel_2nd_part = new_vel(t_2nd_part)
-            acc_2nd_part = new_acc(t_2nd_part)
+        #     t_2nd_part = np.linspace(new_knots[3 + num_1st_part_knots], new_knots[-4],
+        #                              num_eval_in_2nd_part, endpoint=False)
+        #     pos_2nd_part = new_pos(t_2nd_part)
+        #     vel_2nd_part = new_vel(t_2nd_part)
+        #     acc_2nd_part = new_acc(t_2nd_part)
 
-            # linear fitting
-            # y (2 * T, 3), T: num of eval timestamps
-            # X (2 * T, Nc), Nc: num of control pts
-            y = np.concatenate([pos_1st_part, pos_2nd_part,
-                                vel_1st_part, vel_2nd_part,
-                                acc_1st_part, acc_2nd_part])
+        #     # linear fitting
+        #     # y (2 * T, 3), T: num of eval timestamps
+        #     # X (2 * T, Nc), Nc: num of control pts
+        #     y = np.concatenate([pos_1st_part, pos_2nd_part,
+        #                         vel_1st_part, vel_2nd_part,
+        #                         acc_1st_part, acc_2nd_part])
 
-            pos_coef_bspline = BSpline(t=msg.knots, c=np.eye(len(pos)), k=msg.order, extrapolate=False)
-            vel_coef_bspline = pos_coef_bspline.derivative()
-            acc_coef_bspline = vel_coef_bspline.derivative()
+        #     pos_coef_bspline = BSpline(t=msg.knots, c=np.eye(len(pos)), k=msg.order, extrapolate=False)
+        #     vel_coef_bspline = pos_coef_bspline.derivative()
+        #     acc_coef_bspline = vel_coef_bspline.derivative()
 
-            coef_t = np.concatenate([t_1st_part, t_2nd_part])
+        #     coef_t = np.concatenate([t_1st_part, t_2nd_part])
 
-            X = np.concatenate([pos_coef_bspline(coef_t),
-                                vel_coef_bspline(coef_t),
-                                acc_coef_bspline(coef_t)])
+        #     X = np.concatenate([pos_coef_bspline(coef_t),
+        #                         vel_coef_bspline(coef_t),
+        #                         acc_coef_bspline(coef_t)])
 
-            XTX_inv = np.linalg.inv(np.matmul(X.T, X))
-            new_pos_pts = np.matmul(np.matmul(XTX_inv, X.T), y)
+        #     XTX_inv = np.linalg.inv(np.matmul(X.T, X))
+        #     new_pos_pts = np.matmul(np.matmul(XTX_inv, X.T), y)
 
-            new_pos = BSpline(t=msg.knots, c=new_pos_pts, k=msg.order, extrapolate=False)
-            new_vel = new_pos.derivative()
-            new_acc = new_vel.derivative()
+        #     new_pos = BSpline(t=msg.knots, c=new_pos_pts, k=msg.order, extrapolate=False)
+        #     new_vel = new_pos.derivative()
+        #     new_acc = new_vel.derivative()
 
         self.pos_bspline = new_pos
         self.vel_bspline = new_vel
@@ -256,8 +256,7 @@ class TrajectoryController(object):
                 self.desired_acc[2][0] = self.clip_by_derivative(self.desired_acc[2][0], az_des, MAX_JERK)
                 desired_acc_norm = np.linalg.norm(self.desired_acc)
                 self.desired_acc *= np.clip(desired_acc_norm, 0, MAX_ACC) / desired_acc_norm
-
-        except Exception:
+        else:
             self.get_in_hover(curr_pos)
             rospy.logwarn_once("Run `roslaunch ego_planner run_with_vicon.launch` now")
 

@@ -7,6 +7,6 @@
 		<rosparam param="euler_limit"> [8, 8, 15] </rosparam>
 		<param name="bool_sim" value="False" />
 		<param name="adv_ctrl" value="True" />
-		<param name="bspline_traj" value="False" />
+		<param name="bspline_traj" value="True" />
 	</node>
 </launch>
