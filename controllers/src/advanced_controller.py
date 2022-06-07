@@ -69,7 +69,7 @@ class AdvancedController(OffboardControl):
         # descend
         if mode == 0:
             self.reset_automatic()
-            self.auto_lower_flag = True
+            self.auto_traj_flag = True
             rospy.loginfo('Starting traj control ...')
 
     def is_point_in_cube(self, coord, corner1, corner2):
